@@ -1,0 +1,4 @@
+Results options:
+	Output results after i_max iterations
+	Output results after every x iterations up to i_max iterations
+	Output results after every iteration
