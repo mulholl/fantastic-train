@@ -74,7 +74,172 @@ bool loadSparseBinMatFromTxt(SparseMatrix<bool> &mat, const string str){
 	return true;
 }
 
-bool saveSparseBinMatToTxt(const SparseMatrix<bool> &mat, const string str){
+bool loadSparseBinMatFromTxt(vector< list<unsigned int> > &rowMajor, vector< list<unsigned int> > &colMajor, const std::string str){
+	rowMajor.clear();
+	colMajor.clear();
+
+	ifstream ifs(str, ios::in);
+	string tmp;
+
+	stringstream ss;
+
+	unsigned int rowInd, colInd;
+	unsigned int numRows = 0;
+	unsigned int numCols = 0;
+	bool usedRowInd = false;
+	bool usedColInd = false;
+
+	unsigned int count = 0;
+
+	if (ifs.is_open()){
+		
+		while (getline(ifs, tmp)){
+			// cout << "tmp = |" << tmp << "|" << endl;
+			trimLWSpace(tmp);
+			trimRWSpace(tmp);
+
+			ss = stringstream(tmp);
+
+			if (usedRowInd && usedColInd){
+				usedRowInd = false;
+				usedColInd = false;
+			}
+
+			if (ss.rdbuf()->in_avail() == 0){
+				continue;
+			}
+
+			if (!usedRowInd){
+				ss >> rowInd;
+				if (ss.fail() || ss.rdbuf()->in_avail() != 0){
+					throw MatInpFileNonInteger{};
+				}
+				numRows = (rowInd >= numRows) ? (rowInd + 1) : numRows;
+				usedRowInd = true;
+			}
+			else {
+				ss >> colInd;
+				if (ss.fail() || ss.rdbuf()->in_avail() != 0){
+					throw MatInpFileNonInteger{};
+				}
+				numCols = (colInd >= numCols) ? (colInd + 1) : numCols;
+				usedColInd = true;
+
+				// vec.push_back(Triplet<bool>(rowInd, colInd, true));
+				// ++count;
+			}
+		}
+
+		// ifs.clear();
+		// ifs.seekg(0, ifs.beg);
+
+		// vector<unsigned int> rowDegrees(numRows, 0);
+		// vector<unsigned int> colDegrees(numCols, 0);
+
+		// vector<unsigned int>::iterator rowDegreeIt;
+		// vector<unsigned 
+
+		// while (getline(ifs, tmp)){
+		// 	// cout << "tmp = |" << tmp << "|" << endl;
+		// 	trimLWSpace(tmp);
+		// 	trimRWSpace(tmp);
+
+		// 	ss = stringstream(tmp);
+
+		// 	if (usedRowInd && usedColInd){
+		// 		usedRowInd = false;
+		// 		usedColInd = false;
+		// 	}
+
+		// 	if (ss.rdbuf()->in_avail() == 0){
+		// 		continue;
+		// 	}
+
+		// 	if (!usedRowInd){
+		// 		ss >> rowInd;
+		// 		if (ss.fail() || ss.rdbuf()->in_avail() != 0){
+		// 			throw MatInpFileNonInteger{};
+		// 		}
+		// 		rowDegreeIt = rowDegrees.begin() + rowInd;
+		// 		(*rowDegreeIt)++;
+		// 		usedRowInd = true;
+		// 	}
+		// 	else {
+		// 		ss >> colInd;
+		// 		if (ss.fail() || ss.rdbuf()->in_avail() != 0){
+		// 			throw MatInpFileNonInteger{};
+		// 		}
+		// 		colDegreeIt = colDegrees.begin() + colInd;
+		// 		(*colDegreeIt)++;
+		// 		usedColInd = true;
+
+		// 		// vec.push_back(Triplet<bool>(rowInd, colInd, true));
+		// 		// ++count;
+		// 	}
+		// }int>::iterator colDegreeIt;
+		rowMajor.resize(numRows);
+		colMajor.resize(numCols);
+
+		vector< list<unsigned int> >::iterator rowMajorIt;
+		vector< list<unsigned int> >::iterator colMajorIt;
+
+		// for (rowDegreeIt = rowDegrees.begin(); rowDegreeIt < rowDegrees.end(); ++rowDegreeIt){
+		// 	rowMajorIt = rowMajor.begin() + distance(rowDegrees.begin(), rowDegreeIt);
+		// 	(*rowMajorIt).resize(*rowDegreeIt);
+		// }
+
+		// for (colDegreeIt = colDegrees.begin(); colDegreeIt < colDegrees.end(); ++colDegreeIt){
+		// 	colMajorIt = colMajor.begin() + distance(colDegrees.begin(), colDegreeIt);
+		// 	(*colMajorIt).resize(*colDegreeIt);
+		// }
+
+		ifs.clear();
+		ifs.seekg(0, ifs.beg);
+
+		while (getline(ifs, tmp)){
+			trimLWSpace(tmp);
+			trimRWSpace(tmp);
+
+			ss = stringstream(tmp);
+
+			if (usedRowInd && usedColInd){
+				usedRowInd = false;
+				usedColInd = false;
+			}
+
+			if (ss.rdbuf()->in_avail() == 0){
+				continue;
+			}
+
+			if (!usedRowInd){
+				ss >> rowInd;
+				if (ss.fail() || ss.rdbuf()->in_avail() != 0){
+					throw MatInpFileNonInteger{};
+				}
+				rowMajorIt = rowMajor.begin() + rowInd;
+				usedRowInd = true;
+			}
+			else {
+				ss >> colInd;
+				if (ss.fail() || ss.rdbuf()->in_avail() != 0){
+					throw MatInpFileNonInteger{};
+				}
+				colMajorIt = colMajor.begin() + colInd;
+				usedColInd = true;
+
+				(*rowMajorIt).push_back(colInd);
+				(*colMajorIt).push_back(rowInd);
+			}
+		}
+	}
+	else {
+		throw MatInpFileOpenFail(str);
+	}
+
+	return true;
+}
+
+void saveSparseBinMatToTxt(const SparseMatrix<bool> &mat, const string str){
 	ofstream ofs(str, ios::out);
 
 	if (ofs.is_open()){
@@ -89,7 +254,7 @@ bool saveSparseBinMatToTxt(const SparseMatrix<bool> &mat, const string str){
 	}
 }
 
-bool readMatFromTxt(MatrixXi &mat, const string str){
+void readMatFromTxt(MatrixXi &mat, const string str){
 	ifstream ifs(str, ios::in);
 
 	string tmp;

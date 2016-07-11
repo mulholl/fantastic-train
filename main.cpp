@@ -16,7 +16,7 @@ int main(void){
 
 	unsigned int maxIts = 10;
 
-	float erasure_prob = 0.4;
+	float erasure_prob = 0.35;
 
 	int seed = 1;
 
@@ -66,6 +66,28 @@ int main(void){
 
 	loadSparseBinMatFromTxt(C, fn);
 
+	vector< list<unsigned int> > rowMajor, colMajor;
+
+	loadSparseBinMatFromTxt(rowMajor, colMajor, fn);
+
+	for (vector< list<unsigned int> >::iterator it1 = rowMajor.begin(); it1 < rowMajor.begin() + 5; ++it1){
+		for (list<unsigned int>::iterator it2 = (*it1).begin(); it2 != (*it1).end(); ++it2){
+			cout << *it2 << " " << flush;
+		}
+		cout << endl;
+	}
+
+	cout << endl << endl;
+
+	for (vector< list<unsigned int> >::iterator it1 = colMajor.begin(); it1 < colMajor.begin() + 5; ++it1){
+		for (list<unsigned int>::iterator it2 = (*it1).begin(); it2 != (*it1).end(); ++it2){
+			cout << *it2 << " " << flush;
+		}
+		cout << endl;
+	}
+
+	cout << endl << endl;	
+
 	// cout << "2. C = " << endl << C << endl;
 
 	// cout << "\n\n\n\n3. Trying to save the sparse matrix to the file " << fn_out << "... " << flush;
@@ -97,30 +119,42 @@ int main(void){
 	/* Modulate the codeword using BPSK */
 	BPSKTXVector modulatedCW = BPSKMod(codeword);
 	/* Transmit the modulated codeword over the channel */
-	BECBPSKRXVector ModulatedRXCW = BEC.useChannel(modulatedCW);
+	// BECBPSKRXVector ModulatedRXCW = BEC.useChannel(modulatedCW);
 
-	cout << "\n\nThere were " << BEC.numErrors() << " erasures.\n" << endl;
-
+	// cout << "\n\nThere were " << BEC.numErrors() << " erasures.\n" << endl;
 
 	BECDecoder dec(C, maxIts);
 
 	unsigned int numErrs;
 	unsigned int totalErrs = 0;
 	unsigned int totalBits = 0;
+	unsigned int frameErrs = 0;
+	unsigned int totalFrames = 0;
 	unsigned int bitsSent;
 
+	// set< vector<float> > LUT;
+	// set<unsigned int> LUT_errs;
+
 	for (unsigned int i = 0; i < 1000; ++i){
+		totalFrames++;
 		BECBPSKRXVector ModulatedRXCW = BEC.useChannel(modulatedCW);	
 		BECRXVector RXCW = BPSKDemod(ModulatedRXCW);
 		dec.decode(RXCW, modulatedCW, numErrs);
 		bitsSent = modulatedCW.size();
+		if (numErrs){
+			frameErrs++;
+		}
 		totalErrs += numErrs;
 		totalBits += bitsSent;
-	}
 
-	cout << "totalErrs = " << totalErrs << endl;
-	cout << "totalBits = " << totalBits << endl;
-	cout << "BER = " << (float)totalErrs/(float)totalBits << endl;
+		cout << "After " << totalFrames << " codewords:" << endl;
+		cout << "\ttotalErrs = " << totalErrs << endl;
+		cout << "\ttotalBits = " << totalBits << endl;
+		cout << "\ttotalFrames = " << totalFrames << endl;
+		cout << "\tframeErrs = " << frameErrs << endl;
+		cout << "\tBER = " << (float)totalErrs/(float)totalBits << endl;
+		cout << "\tFER = " << (float)frameErrs/(float)totalFrames << endl;
+	}
 
 
 	clock_t end = clock();

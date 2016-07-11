@@ -41,9 +41,9 @@ void trimRWSpace(string &str){
 		return;
 	}
 
-	for (it = str_len - 1; it >= 0; --it){
+	for (it = str_len; it > 0; --it){
 		// cout << "\tstr[" << it << "] = " << str[it] << endl;
-		if (!isspace(str[it], loc))
+		if (!isspace(str[it-1], loc))
 			break;
 	}
 
