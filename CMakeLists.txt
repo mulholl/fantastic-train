@@ -16,6 +16,8 @@ configure_file (
 # so that we will find configured header files
 include_directories("${PROJECT_BINARY_DIR}")
 
+# SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pg")
+
 # Tell cmake to find Eigen and how to do that
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 find_package(Eigen3 REQUIRED)
@@ -28,7 +30,7 @@ include_directories(${EIGEN3_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR}/unsupported/)
 add_executable (fantastic_train main.cpp MatrixFileFunctions.cpp StringFunctions.cpp Modulators.cpp BEChannel.cpp BECDecoder.cpp)
 target_link_libraries (fantastic_train ${FANTASTIC_TRAIN_LIBS})
 
-add_definitions(-std=c++11)
+# add_definitions(-std=c++11 -pg)
 
 # Use the C++ '11 standard
 set_property(TARGET fantastic_train PROPERTY CXX_STANDARD_REQUIRED 11)

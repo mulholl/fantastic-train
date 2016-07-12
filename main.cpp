@@ -132,10 +132,15 @@ int main(void){
 	unsigned int totalFrames = 0;
 	unsigned int bitsSent;
 
+
+	vector<float> SER, FER, percDecodedEachIt;
+	vector<unsigned int> numDecodedEachIt;
+
+
 	// set< vector<float> > LUT;
 	// set<unsigned int> LUT_errs;
 
-	for (unsigned int i = 0; i < 1000; ++i){
+	for (unsigned int i = 0; i < 100; ++i){
 		totalFrames++;
 		BECBPSKRXVector ModulatedRXCW = BEC.useChannel(modulatedCW);	
 		BECRXVector RXCW = BPSKDemod(ModulatedRXCW);
@@ -154,6 +159,20 @@ int main(void){
 		cout << "\tframeErrs = " << frameErrs << endl;
 		cout << "\tBER = " << (float)totalErrs/(float)totalBits << endl;
 		cout << "\tFER = " << (float)frameErrs/(float)totalFrames << endl;
+
+		cout << "BEC.SER() = " << endl;
+		dec.SER(SER);
+		dec.FER(FER);
+		dec.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);
+
+		for (vector<unsigned int>::iterator it = numDecodedEachIt.begin(); it < numDecodedEachIt.end(); ++it){
+			cout << "\t" << *it;
+		}
+		cout << endl;
+		for (vector<float>::iterator it = percDecodedEachIt.begin(); it < percDecodedEachIt.end(); ++it){
+			cout << "\t" << *it;
+		}
+		cout << endl;		
 	}
 
 
