@@ -9,10 +9,10 @@
 #include <random>
 #include <ctime>
 #include <list>
-// #include <set>
 
 #include "MatrixFileFunctions.hpp"
 #include "Modulators.hpp"
 #include "BEChannel.hpp"
 #include "BECDecoder.hpp"
 #include "Codewords.hpp"
+#include "InpOpts.hpp"

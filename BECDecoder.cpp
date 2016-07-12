@@ -365,19 +365,19 @@ BECDecoder::BECDecoder(Eigen::SparseMatrix<bool,ColMajor> edgeList_in, const uns
 	reset();
 }
 
-unsigned int BECDecoder::countErrors(const BPSKTXVector &CorrectCW){
-	BPSKRXVector::iterator it2;
+// unsigned int BECDecoder::countErrors(const BPSKTXVector &CorrectCW){
+// 	BPSKRXVector::iterator it2;
 
-	unsigned int symbolErrs = 0;
-	BPSKTXVector tmp = CorrectCW;
+// 	unsigned int symbolErrs = 0;
+// 	BPSKTXVector tmp = CorrectCW;
 
-	for (BPSKTXVector::const_iterator it1 = CorrectCW.begin(); it1 < CorrectCW.end(); ++it1){
-		it2 = DecoderOutput.begin() + distance(CorrectCW.begin(), it1);
+// 	for (BPSKTXVector::const_iterator it1 = CorrectCW.begin(); it1 < CorrectCW.end(); ++it1){
+// 		it2 = DecoderOutput.begin() + distance(CorrectCW.begin(), it1);
 
-		if ((*it1) != (*it2)){
-			symbolErrs++;
-		}
-	}
+// 		if ((*it1) != (*it2)){
+// 			symbolErrs++;
+// 		}
+// 	}
 
-	return symbolErrs;
-}
+// 	return symbolErrs;
+// }

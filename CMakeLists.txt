@@ -16,7 +16,18 @@ configure_file (
 # so that we will find configured header files
 include_directories("${PROJECT_BINARY_DIR}")
 
-# SET( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pg")
+# Add the directory for our input argument parsing library
+set (INP_OPTS_SOURCE_DIR "${PROJECT_SOURCE_DIR}/InpOpts/")
+include_directories(${INP_OPTS_SOURCE_DIR})
+add_subdirectory(InpOpts)
+set (FANTASTIC_TRAIN_LIBS ${FANTASTIC_TRAIN_LIBS} InpOpts)
+
+# add the binary tree to the search path for include files
+# so that we will find configured header files
+#include_directories("${PROJECT_BINARY_DIR}")
+include_directories("${PROJECT_BINARY_DIR}/InpOpts/")
+
+# SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
 # Tell cmake to find Eigen and how to do that
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
@@ -30,7 +41,7 @@ include_directories(${EIGEN3_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR}/unsupported/)
 add_executable (fantastic_train main.cpp MatrixFileFunctions.cpp StringFunctions.cpp Modulators.cpp BEChannel.cpp BECDecoder.cpp)
 target_link_libraries (fantastic_train ${FANTASTIC_TRAIN_LIBS})
 
-# add_definitions(-std=c++11 -pg)
+add_definitions(-std=c++11)
 
 # Use the C++ '11 standard
 set_property(TARGET fantastic_train PROPERTY CXX_STANDARD_REQUIRED 11)

@@ -41,9 +41,6 @@ class BECDecoder{
 		BPSKRXVector DecoderOutput;
 		unsigned int numSymbolsDecoded;
 		unsigned int numFramesDecoded;
-		unsigned int cumulativeUnfixedSymbolErrors;
-		unsigned int cumulativeUnfixedFrameErrors;
-		unsigned int countErrors(const BPSKTXVector &);
 		std::vector<unsigned int> decodedEachIt;
 		std::vector<unsigned int> symbolErrorsRemaining;
 		std::vector<unsigned int> frameErrorsRemaining;

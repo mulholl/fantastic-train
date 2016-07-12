@@ -2,73 +2,54 @@
 
 using namespace std;
 using namespace Eigen;
+using namespace inpopts;
 
-int main(void){
+int main(int argc, char *argv[]){
 	clock_t begin = clock();
 
 	MatrixXi A;
 	SparseMatrix<double> B;
 	SparseMatrix<bool> C;
-	string fn = "edge_list.txt";
-	string fn_out = "testout.txt";
+	string edge_list_filename;
+	string config_filename = "config.txt";
 	Triplet<double> T = Triplet<double>(1, 2, 0.5);
 	vector< Triplet<double> > V;
 
-	unsigned int maxIts = 10;
+	unsigned int maxIts;
 
-	float erasure_prob = 0.35;
+	float channel_param;
 
-	int seed = 1;
+	int seed;
 
-	cout << "Version: " << FANTASTIC_TRAIN_VERSION_MAJOR << "." << FANTASTIC_TRAIN_VERSION_MINOR << endl << endl;
+	// InpOptsClass opts(argc, argv, config_filename, "cf");
+	InpOptsClass opts(argc, argv, config_filename, "cf");
 
-	// V.push_back(T);
-	// T = Triplet<double>(2, 3, 1.1);
-	// V.push_back(T);
-	// T = Triplet<double>(3, 2, 1.2);
-	// V.push_back(T);
-	// T = Triplet<double>(3, 3, 1.5);
-	// V.push_back(T);
+	opts.addOpt('h', "help", "Print this help message");
+	opts.addOpt('p', "channel_param", "Channel parameter value to be used", value<float>(channel_param).setRange(0.0,1.0));
+	opts.addOpt('i', "max_iterations", "Maximum number of decoder iterations to be simulated per transmission", value<unsigned int>(maxIts).minNumArgs(0).defaultValue(200));
+	opts.addOpt('s', "seed", "Seed for pseudorandom number generator", value<int>(seed).defaultValue(time(NULL)));
+	opts.addOpt('c', "config_file", "Path to configuration file (not currently working due to limitations in sturdy-robot...)", value<string>(config_filename).defaultValue("config.txt"));
+	opts.addOpt('e', "edge_list_file", "Path to file containing parity-check matrix edge list", value<string>(edge_list_filename).defaultValue("edge_list.txt"));
 
-	// A.setZero(2, 2);
-	// B.resize(4, 5);
+	if (opts.Used("help") || opts.Used('h')){
+		cout << "fantastic-train Version " << FANTASTIC_TRAIN_VERSION_MAJOR << "." << FANTASTIC_TRAIN_VERSION_MINOR << endl << endl;
+		cout << "Options " << endl;
+		cout << opts.listArgs() << endl;
+		cout << "Makes use of sturdy-robot Version " << inpopts::Version() << endl;
+	}
 
-	// B.setFromTriplets(V.begin(), V.end());
+	cout << "channel_param = " << channel_param << endl;
+	cout << "maxIts = " << maxIts << endl;
+	cout << "seed = " << seed << endl;
+	// exit(0);
 
-	// cout << "A = \n" << A << endl;
-	// cout << "B = \n" << B << endl;
+	cout << "\n\n\n\n2. Trying to load the sparse matrix in the file " << edge_list_filename << "... " << flush;	
 
-	// // cout << "B(0, 0) = " << B(0, 0) << endl;
-	// // cout << "B(0, 0) = " << B(1, 2) << endl;
-	// // cout << "B(0, 0) = " << B(2, 3) << endl;
-	// // cout << "B(0, 0) = " << B(3, 2) << endl;
-	// // cout << "B(0, 0) = " << B(3, 3) << endl;
-
-	// cout << 	"B.outerSize() = " << B.outerSize() << endl;
-
-	// for (int k=0; k<B.outerSize(); ++k){
-	// 	for (SparseMatrix<double>::InnerIterator it(B,k); it; ++it){
-	// 	cout << "it.value() = " << it.value() << endl;
-	// 	cout << "it.row() = " << it.row() << endl;   // row index
-	// 	cout << "it.col() = " << it.col() << endl;  // col index (here it is equal to k)
-	// 	cout << "it.index() = " << it.index() << "\n" << endl; // inner index, here it is equal to it.row()
-	// 	}
-	// }
-
-	// for (unsigned int i = 0; i < B.rows(); ++i){
-	// 	for (unsigned int j = 0; j < B.cols(); ++j){
-	// 		cout << B.coeffRef(i, j) << " ";
-	// 	}
-	// 	cout << endl;
-	// }
-
-	cout << "\n\n\n\n2. Trying to load the sparse matrix in the file " << fn << "... " << flush;	
-
-	loadSparseBinMatFromTxt(C, fn);
+	loadSparseBinMatFromTxt(C, edge_list_filename);
 
 	vector< list<unsigned int> > rowMajor, colMajor;
 
-	loadSparseBinMatFromTxt(rowMajor, colMajor, fn);
+	loadSparseBinMatFromTxt(rowMajor, colMajor, edge_list_filename);
 
 	for (vector< list<unsigned int> >::iterator it1 = rowMajor.begin(); it1 < rowMajor.begin() + 5; ++it1){
 		for (list<unsigned int>::iterator it2 = (*it1).begin(); it2 != (*it1).end(); ++it2){
@@ -90,9 +71,9 @@ int main(void){
 
 	// cout << "2. C = " << endl << C << endl;
 
-	// cout << "\n\n\n\n3. Trying to save the sparse matrix to the file " << fn_out << "... " << flush;
+	// cout << "\n\n\n\n3. Trying to save the sparse matrix to the file " << edge_list_filename_out << "... " << flush;
 
-	// saveSparseBinMatToTxt(C, fn_out);
+	// saveSparseBinMatToTxt(C, edge_list_filename_out);
 
 	// cout << "DONE" << endl;
 
@@ -110,7 +91,7 @@ int main(void){
 
 	cout << "There are " << C.cols() << " VNs and " << C.rows() << " CNs." << endl;
 
-	BEChannel BEC(erasure_prob, RNG);
+	BEChannel BEC(channel_param, RNG);
 
 	// cout << "The Mersenne twister RNG, seeded with " << seed << ", gives " << RNG() << " " << RNG() << " " << RNG() << " " << RNG() << " " << endl;
 
