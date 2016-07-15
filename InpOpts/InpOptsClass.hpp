@@ -48,6 +48,7 @@ namespace inpopts{
 			void printFileOpts();
 			unsigned int checkCmdOpt(const char, const std::string, std::vector<std::string> &);
 			unsigned int checkFileOpt(const char, const std::string, std::vector<std::string> &);
+			std::string lastAdded;
 
 			/* convert(A, B) converts the strings in the vector A into the correct type for the vector B.
 			 * If the type of B is not supported, an exception is thrown */
@@ -80,6 +81,17 @@ namespace inpopts{
 			void addOpt(const char opt_short, const std::string opt_long, const std::string help_text, value<T> &val){
 				bool optUsed;
 
+				lastAdded = "";
+				if (opt_short != '\0'){
+					lastAdded = lastAdded + opt_short;
+					if (opt_long.length() > 0){
+						lastAdded = lastAdded + "/";
+					}
+				}
+				if (opt_long.length() > 0){
+					lastAdded = lastAdded + opt_long;
+				}
+
 				/* First, check that T is a type that we can deal with */
 				if ((typeid(T) != typeid(unsigned int)) &&(typeid(T) != typeid(int)) && (typeid(T) != typeid(float)) && (typeid(T) != typeid(double)) && (typeid(T) != typeid(bool)) && (typeid(T) != typeid(char)) && (typeid(T) != typeid(std::string))){
 					throw inpopts::BadType{ };
@@ -97,7 +109,19 @@ namespace inpopts{
 				if (optUsed){
 					std::vector<T> argsAsCorrectType;
 					convert(argsAsStrings, argsAsCorrectType);
-					val.validateAndAssign(argsAsCorrectType);
+					// std::cout << "argsAsCorrectType: \n";
+					// for (typename std::vector<T>::iterator it = argsAsCorrectType.begin(); it < argsAsCorrectType.end(); ++it){
+					// 	std::cout << "\t" << *it;
+					// }
+					// std::cout << std::endl;
+					// std::cout << "validateAndAssign() returns " << val.validateAndAssign(argsAsCorrectType) << std::endl;
+					try {
+						val.validateAndAssign(argsAsCorrectType);
+					}
+					catch (const std::exception &e){
+						std::string tmp_str = "Validation for the option " + lastAdded + " failed with the following error message: \n" + e.what();
+						throw ValidationFailure(tmp_str);
+					}
 				}
 				/* If the option has not been used but a default value was specified, assign that value */
 				else {
@@ -121,14 +145,14 @@ namespace inpopts{
 
 				addOpt(opt_short, opt_long, help_text, val);
 			}
-
+			
 			// template <typename T>
 			void addOpt(const char opt_short, const std::string opt_long, const std::string help_text){
 				bool tmp;
 				value<bool> val(tmp);
 
 				addOpt(opt_short, opt_long, help_text, val);
-			}			
+			}
 
 			bool checkOpt(const char, const std::string, std::vector<std::string> &, const bool);
 			std::string listArgs();
@@ -137,6 +161,7 @@ namespace inpopts{
 			std::string Priority();
 			void UnrecognizedOpts(std::string &);
 			std::string UnrecognizedOpts();
+			std::string LastAttemptedAdd();
 			InpOptsClass(const int, char**);
 			InpOptsClass(const int, char**, const std::string, std::string);
 			InpOptsClass(const std::string);

@@ -16,3 +16,14 @@
 #include "BECDecoder.hpp"
 #include "Codewords.hpp"
 #include "InpOpts.hpp"
+#include "FantasticTrainMainFunctions.hpp"
+#include "FantasticTrainExceptions.hpp"
+#include "ChannelModels.hpp"
+
+#define CHANNEL_PARAM_MODE_SINGLE_VALUE 1
+#define CHANNEL_PARAM_MULTI_LINE_RANGE_OF_VALUES 2
+#define CHANNEL_PARAM_ONE_LINE_RANGE_OF_VALUES 3
+#define CHANNEL_PARAM_LIST_OF_VALUES 4
+
+#define EXIT_BAD_INPUTS -1
+#define EXIT_FILE_FAILURE -2

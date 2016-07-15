@@ -1,0 +1,4 @@
+#ifndef CHANNEL_MODELS_HPP
+#define CHANNEL_MODELS_HPP
+
+#endif

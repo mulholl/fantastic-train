@@ -346,6 +346,10 @@ namespace inpopts{
 
 		return str;
 	}
+	
+	std::string InpOptsClass::LastAttemptedAdd(){
+		return lastAdded;
+	}
 
 	InpOptsClass::InpOptsClass(const int arg_c, char** arg_v){
 		argc = arg_c;
@@ -796,7 +800,7 @@ namespace inpopts{
 	// 	// cout << "str is now = " << str << endl;
 	// }
 
-	/* trimLWSpace(string &str) trims any whitespace at the end of str */
+	/* trimRWSpace(string &str) trims any whitespace at the end of str */
 	void InpOptsClass::trimRWSpace(string &str){
 		locale loc;
 		unsigned int str_len = str.length();
@@ -811,7 +815,7 @@ namespace inpopts{
 				break;
 		}
 
-		str = str.substr(0, it + 1);
+		str = str.substr(0, it);
 	}	
 
 	/* splitAtFirstWs(string &str1) splits str1 in two at the first whitespace character. The return value is everything up to this character, str1 is modified to be everything after this character. Leading whitespace is trimmed from str1 before and after the split */
@@ -896,10 +900,10 @@ namespace inpopts{
 				/* We assume that everything that comes before this equals sign is the option, possibly with some whitespace at the end that we'll trim... */
 				option = current_line.substr(0, ind);
 
-				// cout << "option = " << option << endl;
+				// cout << "option = " << "|" << option << "|" << endl;
 				trimRWSpace(option);
 
-				// cout << "option = " << option << endl;
+				// cout << "option = " << "|" << option << "|" << endl;
 
 				/* Now we store the category and option */
 				if (header){
@@ -938,7 +942,7 @@ namespace inpopts{
 			// cout << "optInds[" << it << "] = " << optInds[it] << " | " << fileNumArgs[it] << " arguments\n";
 			cout << "\t" << fileOpts[it] << "\n\t\t\t";
 			for (vector<string>::iterator it2 = fileArgs[it].begin(); it2 < fileArgs[it].end(); ++it2){
-				cout << *it2;
+				cout << "|" << *it2 << "|";
 				if (it2 < fileArgs[it].end() - 1){
 					cout << ", ";
 				}

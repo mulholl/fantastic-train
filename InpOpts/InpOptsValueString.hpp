@@ -210,6 +210,12 @@ namespace inpopts{
 			value& setValList(std::vector<std::string> inpValList){
 				valList = inpValList;
 
+				// std::cout << "Setting the value list using the vecor: " <<std::endl;
+				// for (std::vector<std::string>::iterator it = valList.begin(); it < valList.end(); ++it){
+				// 	std::cout << "|" << *it << "|" << std::endl;
+				// }
+				// std::cout << std::endl;
+
 				rangeSpec = false;
 				maxSpec = false;
 				minSpec = false;
@@ -572,6 +578,8 @@ namespace inpopts{
 			bool validateAndAssign(std::vector<std::string> &inp){
 				bool valid = false;
 
+				// std::cout << "validateAndAssin()" << std::endl;
+
 				// bool inpBool;
 				// std::vector<bool> inpBoolVec;
 
@@ -595,6 +603,7 @@ namespace inpopts{
 
 				/* Check that an acceptable number of arguments has been provided */
 				if (!validateNumArgs(nArgsIn)){
+					// std::cout << "failed validateNumArgs(" << nArgsIn << ")" << std::endl;
 					return false;
 				}
 
@@ -605,6 +614,7 @@ namespace inpopts{
 				/* If we are dealing with strings, we do things a little differently... */
 				if (typeStr){
 					valid = validateString(inp);
+					// std::cout << "validateString(inp) returned " << valid << std::endl;
 				}
 				// /* Likewise we deal with boolean variables a little differently... */
 				// else if (typeBool){
@@ -617,6 +627,13 @@ namespace inpopts{
 
 				/* If the input was valid (i.e., valid == TRUE), then we can assign the variable */
 				if (valid){
+					// std::cout << "vecInUse = " << vecInUse << std::endl;
+					// std::cout << "nArgsIn = " << nArgsIn << std::endl;
+					// std::cout << "inp = " << std::endl;
+					// for (std::vector<std::string>::iterator it = inp.begin(); it < inp.end(); ++it){
+					// 	std::cout << "\t|" << *it << "|";
+					// }
+					std::cout << std::endl;
 					if (vecInUse){
 						vecVarRef = inp;
 					}
@@ -626,6 +643,8 @@ namespace inpopts{
 					else {
 						throw inpopts::NeedToUseVector{ };
 					}
+
+					// std::cout << "varRef = " << varRef << std::endl;
 
 					return true;
 				}
@@ -716,24 +735,46 @@ namespace inpopts{
 			 * inportant checks (such as checking that an acceptable number of arguments was provided) are done elsewhere
 			 */
 			bool validateString(std::vector<std::string> &inp){
-				if (rangeSpec){
-					return validateRange(inp);
-				}
-				else if (minSpec){
-					return validateMin(inp);
-				}
-				else if (maxSpec){
-					return validateMax(inp);
-				}
-				else if (valListSpec){
-					return validateStringList(inp);
-				}
-				else {
-					/* If we get here, no restrictions have been specified, so there
-					 * is no test to pass, i.e., the input is always considered valid
-					 */
-					return true;
-				}
+				bool ret;
+				// std::cout << "rangeSpec = " << rangeSpec << std::endl;
+				// std::cout << "minSpec = " << minSpec << std::endl;
+				// std::cout << "maxSpec = " << maxSpec << std::endl;
+				// std::cout << "valListSpec = " << valListSpec << std::endl;
+				// try {
+					if (rangeSpec){
+						ret = validateRange(inp);
+						if (!ret){
+							throw OutsideRange{ };
+						}
+					}
+					else if (minSpec){
+						ret = validateMin(inp);
+						if (!ret){
+							throw LTMin{ };
+						}
+					}
+					else if (maxSpec){
+						ret = validateMax(inp);
+						if (!ret){
+							throw GTMax{ };
+						}
+					}
+					else if (valListSpec){
+						ret = validateStringList(inp);
+						if (!ret){
+							throw NotInList{ };
+						}
+					}
+					else {
+						/* If we get here, no restrictions have been specified, so there
+						 * is no test to pass, i.e., the input is always considered valid
+						 */
+						ret = true;
+					}
+				// }
+				// catch
+
+				return ret;
 			}
 
 			bool validateRange(std::string &inp){
@@ -797,9 +838,15 @@ namespace inpopts{
 				bool valid; // TRUE if the element of inp that has most recently been checked was valid
 				
 				valid = false;
-				for (typename std::vector<std::string>::iterator it2 = vecVarRef.begin(); it2 < vecVarRef.end(); ++it2){
+
+				// std::cout << "vecVarRef.size() = " << vecVarRef.size() << std::endl;
+				// std::cout << "vecInUse = " << vecInUse << std::endl;
+
+				for (typename std::vector<std::string>::iterator it2 = valList.begin(); it2 < vecVarRef.end(); ++it2){
+							// std::cout << "Comparing |" << inp << "| with |" << *it2 << "|" << std::endl;
 					/* If inp == *it2, inp is a valid input */
 					if (!inp.compare(*it2)){
+								// std::cout << "\tFAIL!!" << std::endl;
 						valid = true;
 						break;
 					}
@@ -818,10 +865,15 @@ namespace inpopts{
 				bool valid = true; // TRUE if the element of inp that has most recently been checked was valid
 				bool all_valid = true; // TRUE if all of the elements of inp that have been checked so far have been valid
 
+				// std::cout << "vecVarRef.size() = " << vecVarRef.size() << std::endl;
+				// std::cout << "valListSpec = " << valListSpec << std::endl;
+
 				// if (typeid(std::string) == typeid(std::string)){
 					for (typename std::vector<std::string>::iterator it1 = inp.begin(); it1 < inp.end(); ++it1){
 						valid = false;
-						for (typename std::vector<std::string>::iterator it2 = vecVarRef.begin(); it2 < vecVarRef.end(); ++it2){
+						for (typename std::vector<std::string>::iterator it2 = valList.begin(); it2 < valList.end(); ++it2){
+						// for (typename std::vector<std::string>::iterator it2 = vecVarRef.begin(); it2 < vecVarRef.end(); ++it2){
+
 							/* If *it1 == *it2, the current element of inp is a valid input, we can move onto the next element of inp */
 							if (!(*it1).compare(*it2)){
 								valid = true;

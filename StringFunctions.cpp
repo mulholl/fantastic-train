@@ -31,7 +31,29 @@ void trimLWSpace(string &str){
 	str = str.substr(it, str_len - it);
 }
 
-/* trimLWSpace(string &str) trims any whitespace at the end of str */
+// /* trimLWSpace(string &str) trims any whitespace at the end of str */
+// void trimRWSpace(string &str){
+// 	locale loc;
+// 	unsigned int str_len = str.length();
+// 	unsigned int it;
+
+// 	if (str_len == 0){
+// 		return;
+// 	}
+
+// 	for (it = str_len; it > 0; --it){
+// 		// cout << "\tstr[" << it << "] = " << str[it] << endl;
+// 		if (!isspace(str[it-1], loc))
+// 			break;
+// 	}
+
+// 	str = str.substr(0, it + 1);
+
+// 	// cout << "str went from " << str_len << " to " << str.length() << " characters" << endl;
+// 	// cout << "str is now = " << str << endl;
+// }
+
+/* trimRWSpace(string &str) trims any whitespace at the end of str */
 void trimRWSpace(string &str){
 	locale loc;
 	unsigned int str_len = str.length();
@@ -42,16 +64,12 @@ void trimRWSpace(string &str){
 	}
 
 	for (it = str_len; it > 0; --it){
-		// cout << "\tstr[" << it << "] = " << str[it] << endl;
 		if (!isspace(str[it-1], loc))
 			break;
 	}
 
-	str = str.substr(0, it + 1);
-
-	// cout << "str went from " << str_len << " to " << str.length() << " characters" << endl;
-	// cout << "str is now = " << str << endl;
-}
+	str = str.substr(0, it);
+}	
 
 /* splitAtFirstWs(string &str1) splits str1 in two at the first whitespace character. The return value is everything up to this character, str1 is modified to be everything after this character. Leading whitespace is trimmed from str1 before and after the split */
 string splitAtFirstWS(string &str1){

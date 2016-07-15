@@ -117,8 +117,12 @@ namespace inpopts {
 		private:
 			std::string optName;
 	};
-	class OutsideRange{
-
+	struct OutsideRange : std::exception {
+		// public:		
+			virtual const char* what() const throw(){
+				std::string msg = "The specified value is outside the range of allowed values.\n";
+				return msg.c_str();
+			}		
 	};
 
 	class MultCmdSpec{
@@ -237,8 +241,37 @@ namespace inpopts {
 				return msg.c_str();
 			}
 	};	
-	class NotInList{
-
+	struct LTMin : std::exception {
+		// public:
+			virtual const char* what() const throw(){
+				std::string msg = "The specified value is less than the minimum allowed value.\n";
+				return msg.c_str();
+			}		
+	};
+	struct GTMax : std::exception {
+		// public:		
+			virtual const char* what() const throw(){
+				std::string msg = "The specified value is greater than the maximum allowed value.\n";
+				return msg.c_str();
+			}				
+	};
+	struct NotInList : std::exception {
+		// public:
+			virtual const char* what() const throw(){
+				std::string msg = "The specified value is not in the list of allowed values.\n";
+				return msg.c_str();
+			}		
+	};
+	class ValidationFailure{
+	public:
+			ValidationFailure(const std::string str_in) : str(str_in) {
+				// str = str_in;
+			}
+			virtual const char* what() const throw(){
+				return str.c_str();
+			}
+	private:
+			std::string str;	
 	};
 }
 

@@ -234,8 +234,12 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 
 	numErrs = erasuresRemaining;
 
+	/* If there are still errors remaining after the final iteration
+	 * increment numFrameFailures
+	 */
 	if (erasuresRemaining > 0){
 		decodedEachIt[maxIts+1]++;
+		numFrameFailures++;
 	}
 	
 	// cout << "Erasures remaining after " << l+1 << " iterations: " << erasuresRemaining << endl;
@@ -255,22 +259,22 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 	// if (l == maxIts){
 		// decodedEachIt++;
 	// }
-	// decodedEachIt[l]++;
-	cout << "elapsed_secs_decode = " << elapsed_secs_decode << endl;
-	cout << "average decode time (" << numFramesDecoded << " decodes so far) = " << elapsed_secs_decode / (double)numFramesDecoded << endl;
-	cout << "Its used: " << endl;
-	for (int it = 0; it <= maxIts; ++it){
-		cout << "\t" << it;
-	}
-	cout << endl;
-	for (vector<unsigned int>::iterator it = decodedEachIt.begin(); it < decodedEachIt.end(); ++it){
-		cout << "\t" << *it;
-	}
-	cout << endl;
-	for (vector<unsigned int>::iterator it = decodedEachIt.begin(); it < decodedEachIt.end(); ++it){
-		cout << "\t" << 100 * (float)(*it) / (float)(numFramesDecoded);
-	}
-	cout << endl;
+	// // decodedEachIt[l]++;
+	// cout << "elapsed_secs_decode = " << elapsed_secs_decode << endl;
+	// cout << "average decode time (" << numFramesDecoded << " decodes so far) = " << elapsed_secs_decode / (double)numFramesDecoded << endl;
+	// cout << "Its used: " << endl;
+	// for (int it = 0; it <= maxIts; ++it){
+	// 	cout << "\t" << it;
+	// }
+	// cout << endl;
+	// for (vector<unsigned int>::iterator it = decodedEachIt.begin(); it < decodedEachIt.end(); ++it){
+	// 	cout << "\t" << *it;
+	// }
+	// cout << endl;
+	// for (vector<unsigned int>::iterator it = decodedEachIt.begin(); it < decodedEachIt.end(); ++it){
+	// 	cout << "\t" << 100 * (float)(*it) / (float)(numFramesDecoded);
+	// }
+	// cout << endl;
 
 	symbolErrorsRemaining = symbolErrorsRemaining + CurrentCWsymbolErrorsRemaining;
 	frameErrorsRemaining = frameErrorsRemaining + CurrentCWframeErrorsRemaining;
@@ -303,6 +307,7 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 void BECDecoder::reset(){
 	numSymbolsDecoded = 0;
 	numFramesDecoded = 0;
+	numFrameFailures = 0;
 
 	decodedEachIt.resize(maxIts + 2, 0);
 	symbolErrorsRemaining.resize(maxIts + 1, 0);
@@ -337,6 +342,10 @@ float BECDecoder::FER(){
 
 float BECDecoder::FER(const unsigned int a){
 	return (float)(*(frameErrorsRemaining.begin() + a)) / (float) (numFramesDecoded);
+}
+
+unsigned int BECDecoder::numFailures(){
+	return numFrameFailures;
 }
 
 /* Finds the number and percentage of all codewords that have been decoded after each iteration,
