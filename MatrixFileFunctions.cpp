@@ -74,7 +74,7 @@ bool loadSparseBinMatFromTxt(SparseMatrix<bool> &mat, const string str){
 	return true;
 }
 
-bool loadSparseBinMatFromTxt(vector< list<unsigned int> > &rowMajor, vector< list<unsigned int> > &colMajor, const std::string str){
+bool loadSparseBinMatFromTxt(vector< vector<unsigned int> > &rowMajor, vector< vector<unsigned int> > &colMajor, const std::string str){
 	rowMajor.clear();
 	colMajor.clear();
 
@@ -180,8 +180,8 @@ bool loadSparseBinMatFromTxt(vector< list<unsigned int> > &rowMajor, vector< lis
 		rowMajor.resize(numRows);
 		colMajor.resize(numCols);
 
-		vector< list<unsigned int> >::iterator rowMajorIt;
-		vector< list<unsigned int> >::iterator colMajorIt;
+		vector< vector<unsigned int> >::iterator rowMajorIt;
+		vector< vector<unsigned int> >::iterator colMajorIt;
 
 		// for (rowDegreeIt = rowDegrees.begin(); rowDegreeIt < rowDegrees.end(); ++rowDegreeIt){
 		// 	rowMajorIt = rowMajor.begin() + distance(rowDegrees.begin(), rowDegreeIt);

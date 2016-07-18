@@ -7,6 +7,10 @@
 #include <sstream>
 #include <iomanip>
 #include <sstream>
+#include <algorithm>
+#include <fstream>
+
+#include "main.hpp"
 
 template <typename T>
 std::string printVector(const std::vector<T> &v, const std::string str){
@@ -26,5 +30,13 @@ std::vector<float> getChannelParamList(const float channel_param);
 std::vector<float> getChannelParamList(const float min, const float step, const float max);
 std::vector<float> getChannelParamList(const std::vector<float> &list_in);
 std::string listChannelParams(const std::vector<float> &param_list);
+bool sortChannelParams(std::vector<float> &param_list, const unsigned int channel_model, const bool override);
+bool sortDesc(const float a, const float b);
+std::ofstream prepareOutputTxtFile(const std::string str, const unsigned int maxIts);
+std::ofstream prepareSERTxtFile(const std::string str, const unsigned int maxIts);
+std::ofstream prepareFERTxtFile(const std::string str, const unsigned int maxIts);
+void saveResultsToTxt(std::ofstream &ofs, const float channel_param, const std::vector<float> &SER, const std::vector<float> &FER);
+void saveERResultsToTxt(std::ofstream &ofs, const float channel_param, const std::vector<float> &ER);
+
 
 #endif

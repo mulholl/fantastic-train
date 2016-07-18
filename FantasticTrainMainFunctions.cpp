@@ -62,7 +62,7 @@ std::vector<float> getChannelParamList(const float min, const float step, const 
 		param_list.push_back(min);
 
 		for (unsigned int i = 1; i < num_els; ++i){
-			param_list.push_back(param_list[i-1] + step);
+			param_list.push_back(min + (step * i));
 		}
 	}
 	else {
@@ -71,7 +71,7 @@ std::vector<float> getChannelParamList(const float min, const float step, const 
 		param_list.push_back(min);
 
 		for (unsigned int i = 1; i < num_els; ++i){
-			param_list.push_back(param_list[i-1] + step);
+			param_list.push_back(min + (step * i));
 		}
 
 		param_list.push_back(max);
@@ -114,4 +114,174 @@ std::string listChannelParams(const std::vector<float> &param_list){
 	str = oss.str();
 
 	return str;
+}
+
+/* Sort a vector of channel parameters into the order that will give results as 
+ * early as possible  
+ */
+bool sortChannelParams(std::vector<float> &param_list, const unsigned int channel_model, const bool override){
+	// std::vector<float> sortedVector;
+
+	if (override){
+		return false;
+	}
+
+	if (channel_model == CHANNEL_TYPE_BEC){
+		// sortedVector = 
+		std::sort(param_list.begin(), param_list.end(), sortDesc);
+		// sortedVector = std::vector<float>(param_list.rbegin(), param_list.rend());
+		// param_list = sortedVector;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool sortDesc(const float a, const float b){
+	return (a > b);
+}
+
+std::ofstream prepareOutputTxtFile(const std::string str, const unsigned int maxIts){
+	std::ofstream ofs(str, std::ofstream::out);
+	std::ostringstream oss;
+	std::string tmp_str;
+
+	oss << std::setw(17) << "Channel Parameter";
+
+	// for (unsigned int i = 0; i <= maxIts; ++i){
+		tmp_str =  "BER (" + std::to_string(maxIts) + " its)";
+		oss << std::setw(15) << tmp_str;
+	// }
+
+	// for (unsigned int i = 0; i <= maxIts; ++i){
+		tmp_str =  "FER (" + std::to_string(maxIts) + " its)";
+		oss << std::setw(15) << tmp_str;
+	// }	
+
+	oss << '\n';
+
+	tmp_str = "";
+
+	unsigned int len = oss.str().length();
+
+	for (unsigned int i = 0; i < len-1; ++i){
+		tmp_str += '=';
+	}
+	tmp_str += '\n';
+
+	oss << tmp_str;
+
+	if (ofs.is_open()){
+		ofs << oss.str();
+	}
+
+	ofs.flush();
+
+	return ofs;
+}
+
+std::ofstream prepareSERTxtFile(const std::string str, const unsigned int maxIts){
+	std::ofstream ofs(str, std::ofstream::out);
+	std::ostringstream oss;
+	std::string tmp_str;
+
+	oss << std::setw(17) << "Channel Parameter";
+
+	for (unsigned int i = 0; i <= maxIts; ++i){
+		tmp_str =  "SER - " + std::to_string(i) + " its";
+		oss << std::setw(15) << tmp_str;
+	}
+
+	oss << '\n';
+
+	tmp_str = "";
+
+	unsigned int len = oss.str().length();
+
+	for (unsigned int i = 0; i < len-1; ++i){
+		tmp_str += '=';
+	}
+	tmp_str += '\n';
+
+	oss << tmp_str;
+
+	if (ofs.is_open()){
+		ofs << oss.str();
+	}
+
+	ofs.flush();
+
+	return ofs;
+}
+
+std::ofstream prepareFERTxtFile(const std::string str, const unsigned int maxIts){
+	std::ofstream ofs(str, std::ofstream::out);
+	std::ostringstream oss;
+	std::string tmp_str;
+
+	oss << std::setw(17) << "Channel Parameter";
+
+	for (unsigned int i = 0; i <= maxIts; ++i){
+		tmp_str =  "FER - " + std::to_string(i) + " its";
+		oss << std::setw(15) << tmp_str;
+	}
+
+	oss << '\n';
+
+	tmp_str = "";
+
+	unsigned int len = oss.str().length();
+
+	for (unsigned int i = 0; i < len-1; ++i){
+		tmp_str += '=';
+	}
+	tmp_str += '\n';
+
+	oss << tmp_str;
+
+	if (ofs.is_open()){
+		ofs << oss.str();
+	}
+
+	ofs.flush();
+
+	return ofs;
+}
+
+void saveResultsToTxt(std::ofstream &ofs, const float channel_param, const std::vector<float> &SER, const std::vector<float> &FER){
+	std::ostringstream oss;
+	oss << std::scientific; // Output using scientific notation
+
+	oss << std::setw(17) << channel_param;
+
+	// for (std::vector<float>::const_iterator it = SER.begin(); it < SER.end(); ++it){
+		oss << std::setw(15) << *(SER.end() - 1);
+	// }
+	// for (std::vector<float>::const_iterator it = FER.begin(); it < FER.end(); ++it){
+		oss << std::setw(15) << *(FER.end() - 1);
+	// }
+
+	oss << '\n';
+
+	ofs << oss.str();
+
+	ofs.flush();
+}
+
+void saveERResultsToTxt(std::ofstream &ofs, const float channel_param, const std::vector<float> &ER){
+	std::ostringstream oss;
+	oss << std::scientific; // Output using scientific notation
+
+	oss << std::setw(17) << channel_param;
+
+	for (std::vector<float>::const_iterator it = ER.begin(); it < ER.end(); ++it){
+		oss << std::setw(15) << *it;
+	}
+
+	oss << '\n';
+
+	ofs << oss.str();
+
+	ofs.flush();
 }

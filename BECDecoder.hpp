@@ -22,6 +22,7 @@
 
 class BECDecoder{
 	public:
+		BPSKRXVector decode(const BECRXVector &RX_in, const BPSKTXVector &TX, unsigned int &numErrs, bool dummy); // Decode the vector RX_in - (N.B. TX is not currently used as the BEC decoder should never make the wrong decision when correcting an erasure)
 		BPSKRXVector decode(const BECRXVector &RX_in, const BPSKTXVector &TX, unsigned int &numErrs); // Decode the vector RX_in - (N.B. TX is not currently used as the BEC decoder should never make the wrong decision when correcting an erasure)
 		std::vector<unsigned int> decode(const BECRXVector &RX_in, const BPSKTXVector &TX, BPSKRXVector &RX_out);
 		BECRXVector singleIteration(const BECRXVector &in);
@@ -35,10 +36,13 @@ class BECDecoder{
 		unsigned int numFailures(); // Return the number of incorrectly decoded frames so far
 		void codewordsDecodedEachIt(std::vector<unsigned int> &numDecodedEachIt, std::vector<float> &percDecodedEachIt); // Find number and percentage of codewords that have been decoded each iteration
 		BECDecoder(Eigen::SparseMatrix<bool,Eigen::ColMajor> edgeList_in, const unsigned int i); // Constructor
+		BECDecoder(std::vector< std::vector<unsigned int> > edgeListRowMajor_in, std::vector< std::vector<unsigned int> >, const unsigned int i); // Constructor
 	private:
 		/* Sparse matrices containing the edge list for the parity-check matrix */
-		Eigen::SparseMatrix<bool,Eigen::ColMajor> edgeListColMajor;
-		Eigen::SparseMatrix<bool,Eigen::RowMajor> edgeListRowMajor;
+		Eigen::SparseMatrix<bool,Eigen::ColMajor> edgeListColMajorSp;
+		Eigen::SparseMatrix<bool,Eigen::RowMajor> edgeListRowMajorSp;
+		std::vector< std::vector<unsigned int> > edgeListColMajor;
+		std::vector< std::vector<unsigned int> > edgeListRowMajor;
 		unsigned int maxIts; // Maximum number of decoder iterations
 		unsigned int numSymbolsDecoded; // The number of symbols that have so far been decoded (whether correctly or incorrectly)
 		unsigned int numFramesDecoded; // The number of frames that have so far been decoded (whether correctly or incorrectly)

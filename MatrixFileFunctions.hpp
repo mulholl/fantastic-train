@@ -15,7 +15,7 @@
 #include "StringFunctions.hpp"
 
 bool loadSparseBinMatFromTxt(Eigen::SparseMatrix<bool> &mat, const std::string str);
-bool loadSparseBinMatFromTxt(std::vector< std::list<unsigned int> > &rowMajor, std::vector< std::list<unsigned int> > &colMajor, const std::string str);
+bool loadSparseBinMatFromTxt(std::vector< std::vector<unsigned int> > &rowMajor, std::vector< std::vector<unsigned int> > &colMajor, const std::string str);
 void saveSparseBinMatToTxt(const Eigen::SparseMatrix<bool> &mat, const std::string str);
 void readMatFromTxt(Eigen::MatrixXi &mat, const std::string str);
 static unsigned int skipCommentLines(std::ifstream &ifs, const char ch);

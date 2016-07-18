@@ -11,7 +11,7 @@ double elapsed_secs_4 = 0.0;
 double elapsed_secs_5 = 0.0;
 double elapsed_secs_6 = 0.0;
 
-BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX, unsigned int &numErrs){
+BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX, unsigned int &numErrs, bool dummy){
 	clock_t decode_begin = clock();
 	clock_t 
 	elapsed_secs_decode = 0;
@@ -57,8 +57,8 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 	symbolErrorsRemainingIt++;
 	frameErrorsRemainingIt++;
 
-	unsigned int m = edgeListColMajor.rows(); // The number of CNs
-	unsigned int N = edgeListColMajor.cols(); // The number of VNs
+	unsigned int m = edgeListColMajorSp.rows(); // The number of CNs
+	unsigned int N = edgeListColMajorSp.cols(); // The number of VNs
 
 	unsigned int i;
 	float edgeVal, tmpVal;
@@ -79,10 +79,16 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 
 	SparseMatrix<float> EdgeMessages;
 	EdgeMessages.resize(0, 0);
-	EdgeMessages.resize(edgeListColMajor.rows(), edgeListColMajor.cols());	
+	EdgeMessages.resize(edgeListColMajorSp.rows(), edgeListColMajorSp.cols());	
 
 	// unsigned int pointfives = 0;
 	// unsigned int notpointfives = 0;
+
+	// for (std::vector<float>::iterator it = M.begin(); it < M.end(); ++it){
+	// 	cout << "*it = " << *it <<endl;
+	// }
+	// exit(0);
+
 
 	for (l = 0; l < maxIts; ++l){
 
@@ -103,14 +109,24 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 
 			begin_CN_4 = clock();
 
-			for (SparseMatrix<bool, RowMajor>::InnerIterator it(edgeListRowMajor, j); it; ++it){
+			for (SparseMatrix<bool, RowMajor>::InnerIterator it(edgeListRowMajorSp, j); it; ++it){
 				Bj.push_back(it.col());
 			}
+
+			cout << "j = " << j << endl;
+			for (vector<unsigned int>::iterator it = Bj.begin(); it < Bj.end(); ++it){
+				cout << "\t" << *it;
+			}
+			cout << endl;
+			// exit(0);			
 
 			for (vector<unsigned int>::iterator i = Bj.begin(); i < Bj.end(); ++i){
 				/* Check whether all messages into CN j other than the one coming from
 				 * VN i are known
 				 */
+
+				 // cout << "*i = " << *i << endl;
+				 // cout << "M[*i] = " << M[*i] << endl;
 
 				bool allKnown = true;
 				unsigned int idash;
@@ -124,15 +140,18 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 				for (vector<unsigned int>::iterator it = Bj.begin(); it < Bj.end(); ++it){
 					idash = *it;
 					vector<float>::iterator M_it = M.begin() + idash;
+					cout << "idash = " << idash << " | *M_it = " << *M_it << "M.size() = " << M.size() << endl;
 					if (idash == *i){
 						continue;
 					}
 					else if (*M_it == 0.5){
+						cout << "setting allKnown = false as *M_it = " << *M_it << endl;
 						allKnown = false;
 						falseCount++;
 						break;
 					}
 					else {
+						cout << "No change as *M_it = " << *M_it << endl;
 						sum = fmod(sum + *M_it, 2);
 						counter++;
 					}
@@ -140,11 +159,14 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 
 				if (allKnown) {
 					vec.push_back(Triplet<float>(j, *i, 100.00)); // Currently the value 100 is used here rather than the actual value because the default value of elements of Eigen's Sparse Matrices is 0
+					cout << "set EdgeMessages[" << j << "][" << *i << "] = " << 100.00 <<endl;
 				}
 				else {
 					vec.push_back(Triplet<float>(j, *i, 0.5));
+					cout << "set EdgeMessages[" << j << "][" << *i << "] = " << 0.5 <<endl;
 				}
 			}
+			exit(0);
 		}
 
 		EdgeMessages.setFromTriplets(vec.begin(), vec.end());
@@ -163,7 +185,7 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 			madeCorrection = false;
 
 			/* Go through each of the CNs connected to the current VN */
-			for (SparseMatrix<bool, ColMajor>::InnerIterator it(edgeListColMajor, *i); it; ++it){
+			for (SparseMatrix<bool, ColMajor>::InnerIterator it(edgeListColMajorSp, *i); it; ++it){
 				unsigned int j = it.row();
 				float Eji = EdgeMessages.coeffRef(j, *i); // The message on the edge connected to CN j
 
@@ -181,6 +203,310 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 
 			if (!madeCorrection){
 				i++;
+					(*symbolErrorsRemainingIt)++;
+					frameError = true;					
+			}
+		}
+
+		/* Update the vector tracking frame errors and increment the symbol/frame error vector iterators */
+		if (frameError){
+			(*frameErrorsRemainingIt)++;
+		}
+		symbolErrorsRemainingIt++;		
+		frameErrorsRemainingIt++;
+
+		/* Stopping criterion - Johnson, Algorithm 2.1 lines 27-28 
+		 * (erasuresRemaining == 0 is the same as "all M_i known")
+		 */
+		if (erasuresRemaining == 0){
+			decodedEachIt[l+1]++;
+			unsigned int tmpSymbErrs = *symbolErrorsRemainingIt;
+			unsigned int tmpFrameErrs = *frameErrorsRemainingIt;
+			while (symbolErrorsRemainingIt < CurrentCWsymbolErrorsRemaining.end()){
+				*symbolErrorsRemainingIt = tmpSymbErrs;
+				*frameErrorsRemainingIt = tmpFrameErrs;
+				++symbolErrorsRemainingIt;
+				++frameErrorsRemainingIt;
+			}
+			break;
+		}
+		else if (!correctionsThisIt){
+			// break_count++;
+			// if (break_count == 5){
+				cout << "Breaking due to no corrections made" << endl;
+				// cout << "DONE! l = " << l << endl;
+				// decodedEachIt[maxIts]++;
+				// break;
+			// }
+			// decodedEachIt[l]++;
+			unsigned int tmpSymbErrs = *symbolErrorsRemainingIt;
+			unsigned int tmpFrameErrs = *frameErrorsRemainingIt;
+			while (symbolErrorsRemainingIt < CurrentCWsymbolErrorsRemaining.end()){
+				*symbolErrorsRemainingIt = tmpSymbErrs;
+				*frameErrorsRemainingIt = tmpFrameErrs;
+				++symbolErrorsRemainingIt;
+				++frameErrorsRemainingIt;
+			}
+			break;
+		}
+		// else {
+			// cout << "\t\t\tl = " << l << endl;
+		// }
+	}
+
+	numErrs = erasuresRemaining;
+
+	/* If there are still errors remaining after the final iteration
+	 * increment numFrameFailures
+	 */
+	if (erasuresRemaining > 0){
+		decodedEachIt[maxIts+1]++;
+		numFrameFailures++;
+	}
+	
+	// cout << "Erasures remaining after " << l+1 << " iterations: " << erasuresRemaining << endl;
+	// cout << "elapsed_secs_CN = " << elapsed_secs_CN << endl;
+	// cout << "elapsed_secs_CN_2 = " << elapsed_secs_CN_2 << endl;
+	// cout << "elapsed_secs_CN_3 = " << elapsed_secs_CN_3 << endl;
+	// cout << "elapsed_secs_CN_4 = " << elapsed_secs_CN_4 << endl;
+	// cout << "elapsed_secs_CN_5 = " << elapsed_secs_CN_5 << endl;
+	// cout << "elapsed_secs_VN = " << elapsed_secs_VN << endl;
+
+
+	clock_t decode_end = clock();
+
+
+	elapsed_secs_decode += double(decode_end - decode_begin) / CLOCKS_PER_SEC;
+	numFramesDecoded++;	
+	// if (l == maxIts){
+		// decodedEachIt++;
+	// }
+	// // decodedEachIt[l]++;
+	// cout << "elapsed_secs_decode = " << elapsed_secs_decode << endl;
+	// cout << "average decode time (" << numFramesDecoded << " decodes so far) = " << elapsed_secs_decode / (double)numFramesDecoded << endl;
+	// cout << "Its used: " << endl;
+	// for (int it = 0; it <= maxIts; ++it){
+	// 	cout << "\t" << it;
+	// }
+	// cout << endl;
+	// for (vector<unsigned int>::iterator it = decodedEachIt.begin(); it < decodedEachIt.end(); ++it){
+	// 	cout << "\t" << *it;
+	// }
+	// cout << endl;
+	// for (vector<unsigned int>::iterator it = decodedEachIt.begin(); it < decodedEachIt.end(); ++it){
+	// 	cout << "\t" << 100 * (float)(*it) / (float)(numFramesDecoded);
+	// }
+	// cout << endl;
+
+	symbolErrorsRemaining = symbolErrorsRemaining + CurrentCWsymbolErrorsRemaining;
+	frameErrorsRemaining = frameErrorsRemaining + CurrentCWframeErrorsRemaining;
+
+	return RX;	
+}
+
+BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX, unsigned int &numErrs){
+	clock_t decode_begin = clock();
+	// clock_t ;
+	elapsed_secs_decode = 0;
+	BPSKRXVector RX;
+
+	unsigned int break_count = 0;
+
+	unsigned int erasuresRemaining = 0; // The number of remaining uncorrected erasures in the current codeword
+	unsigned int erasuresCorrected = 0;
+
+	vector<unsigned int> CurrentCWsymbolErrorsRemaining(maxIts + 1, 0); // Stores the number of bits in the current codeword which are uncorrected after each iteration (starting with iteration 0)
+	vector<unsigned int> CurrentCWframeErrorsRemaining(maxIts + 1, 0); // Stores the number of frames in the current codeword which are uncorrected after each iteration (starting with iteration 0) - the codeword is the frame so each value here is either one or zero, the type of the vector is unsigned int so it can easily be added to another vector later
+
+	vector<unsigned int>::iterator symbolErrorsRemainingIt = CurrentCWsymbolErrorsRemaining.begin();
+	vector<unsigned int>::iterator frameErrorsRemainingIt = CurrentCWframeErrorsRemaining.begin();
+
+	list<unsigned int> errorIndices; // Indices of the bits which are currently uncorrected
+
+	bool frameError = false; // At each iteration this indicates whether the frame is correctd or uncorrected
+
+	numSymbolsDecoded += RX_in.size();	
+
+ 	/* Calculate and record the initial number of symbol and frame errors */
+	for (BECRXVector::const_iterator it = RX_in.begin(); it < RX_in.end(); ++it){
+		if (*it == 0.5){
+			erasuresRemaining++;
+			(*symbolErrorsRemainingIt)++;
+			frameError = true;
+
+			errorIndices.push_back(distance(RX_in.begin(), it));
+		}
+	}
+
+	// cout << "Initial erasures: " << erasuresRemaining << endl;
+
+		if (frameError){
+			(*frameErrorsRemainingIt)++;
+			decodedEachIt[0]++;
+		}
+		else {
+		}	
+
+	symbolErrorsRemainingIt++;
+	frameErrorsRemainingIt++;
+
+	unsigned int m = edgeListRowMajor.size(); // The number of CNs
+	unsigned int N = edgeListColMajor.size(); // The number of VNs
+
+	unsigned int i;
+	float edgeVal, tmpVal;
+
+	bool allKnown;
+
+	// cout << "erasuresRemaining = " << erasuresRemaining << endl;
+
+	// Initialization - Johnson, Algorithm 2.1 lines 3-5
+	BECRXVector M = RX_in;
+
+	clock_t begin_CN, begin_CN_2, begin_CN_3, begin_CN_4, begin_CN_5;
+	clock_t end_CN, end_CN_2, end_CN_3, end_CN_4, end_CN_5;
+
+	unsigned int l; // Iteration counter
+
+	bool correctionsThisIt;
+
+	std::vector< std::vector<unsigned int> >::iterator colMajorIt;
+	std::vector< std::vector<unsigned int> >::iterator rowMajorIt;
+
+	std::vector< std::vector<float> > EdgeMessages(m, std::vector<float>(N, 0));
+
+	// for (std::vector<float>::iterator it = M.begin(); it < M.end(); ++it){
+	// 	cout << "*it = " << *it <<endl;
+	// }
+	// exit(0);
+
+	for (l = 0; l < maxIts; ++l){
+
+		vector< Triplet<float> > vec;
+
+		correctionsThisIt = false;
+
+		begin_CN = clock();
+
+		unsigned int count_ji = 0;
+
+		/* Check node messages - Johnson, Algorithm 2.1 lines 9-17 */
+		for (unsigned int j = 0; j < m; ++j){
+			/* Get Bj, the list of VNs connected to CN j */
+			vector<unsigned int> Bj;
+
+			unsigned int numUnknown = 0;
+
+			begin_CN_4 = clock();
+
+			// for (SparseMatrix<bool, RowMajor>::InnerIterator it(edgeListRowMajor, j); it; ++it){
+			// 	Bj.push_back(it.col());
+			// }
+			Bj = edgeListRowMajor[j];
+			// cout << "j = " << j << endl;
+			// for (vector<unsigned int>::iterator it = Bj.begin(); it < Bj.end(); ++it){
+				// cout << "\t" << *it;
+			// }
+			// cout << endl;
+			// exit(0);
+
+			for (vector<unsigned int>::iterator i = Bj.begin(); i < Bj.end(); ++i){
+				/* Check whether all messages into CN j other than the one coming from
+				 * VN i are known
+				 */
+
+				 // cout << "*i = " << *i << endl;
+				 // cout << "M[*i] = " << M[*i] << endl;
+
+				bool allKnown = true;
+				unsigned int idash;
+				float sum = 0;
+
+				bool do_exit = false;
+
+				unsigned int counter = 0;
+				unsigned int falseCount = 0;
+
+				for (vector<unsigned int>::iterator it = Bj.begin(); it < Bj.end(); ++it){
+					idash = *it;
+					vector<float>::iterator M_it = M.begin() + idash;
+					// cout << "idash = " << idash << " | *M_it = " << *M_it << "M.size() = " << M.size() << endl;
+					if (idash == *i){
+						continue;
+					}
+					else if (*M_it == 0.5){
+						// cout << "setting allKnown = false as *M_it = " << *M_it << endl;
+						allKnown = false;
+						falseCount++;
+						break;
+					}
+					else {
+						// cout << "No change as *M_it = " << *M_it << endl;
+						sum = fmod(sum + *M_it, 2);
+						counter++;
+					}
+				}
+
+
+				if (allKnown) {
+					EdgeMessages[j][*i] = 100;
+					// cout << "set EdgeMessages[" << j << "][" << *i << "] = " << EdgeMessages[j][*i] << " (set to 100) " << endl;
+					// vec.push_back(Triplet<float>(j, *i, 100.00)); // Currently the value 100 is used here rather than the actual value because the default value of elements of Eigen's Sparse Matrices is 0
+				}
+				else {
+					EdgeMessages[j][*i] = 0.5;
+					// cout << "set EdgeMessages[" << j << "][" << *i << "] = " << EdgeMessages[j][*i] <<endl;
+					// vec.push_back(Triplet<float>(j, *i, 0.5));
+				}
+			}
+			// exit(0);
+		}
+
+		/* Variable node messages - Johnson, Algorithm 2.1 lines 19-25 */
+		list<unsigned int>::iterator errorIndIt = errorIndices.begin();
+
+		bool madeCorrection;
+
+		unsigned int tmp = errorIndices.size();
+		unsigned int counter = 0;
+
+		frameError = false;
+
+		while (errorIndIt != errorIndices.end()){
+			// unsigned int i = std::distance(errorIndices.begin(), errorIndIt);
+			madeCorrection = false;
+
+			/* Go through each of the CNs connected to the current VN */
+			// colMajorIt = edgeListColMajor.boolegin() + std::distance(ErrorIndices.begin(), errorIndIt);
+			std::vector<unsigned int> connectedToCurrentVN = edgeListColMajor[*errorIndIt];
+
+			// cout << "VN number " << *errorIndIt << endl;
+			// for (std::vector<unsigned int>::iterator it = connectedToCurrentVN.begin(); it < connectedToCurrentVN.end(); ++it){
+			// 	cout << "\t" << *it;
+			// }
+			// cout << endl;
+			// exit(0);
+
+			for (std::vector<unsigned int>::iterator j = connectedToCurrentVN.begin(); j < connectedToCurrentVN.end(); ++j){
+			// for (SparseMatrix<bool, ColMajor>::InnerIterator it(edgeListColMajor, *errorIndIt); it; ++it){
+				// unsigned int j = it.row();
+				// float Eji = EdgeMessages.coeffRef(j, *errorIndIt); // The message on the edge connected to CN j
+				float Eji = EdgeMessages[*j][*errorIndIt];
+
+				/* If the message is not an erasure, we can correct the VN bit */
+				if (Eji == 100){
+					M[*errorIndIt] = Eji;
+					errorIndIt = errorIndices.erase(errorIndIt);
+					erasuresRemaining--;
+					erasuresCorrected++;
+					madeCorrection = true;
+					correctionsThisIt = true;
+					break;
+				}
+			}
+
+			if (!madeCorrection){
+				errorIndIt++;
 					(*symbolErrorsRemainingIt)++;
 					frameError = true;					
 			}
@@ -309,9 +635,9 @@ void BECDecoder::reset(){
 	numFramesDecoded = 0;
 	numFrameFailures = 0;
 
-	decodedEachIt.resize(maxIts + 2, 0);
-	symbolErrorsRemaining.resize(maxIts + 1, 0);
-	frameErrorsRemaining.resize(maxIts + 1, 0);
+	decodedEachIt = vector<unsigned int>(maxIts + 2, 0);
+	symbolErrorsRemaining = vector<unsigned int>(maxIts + 1, 0);
+	frameErrorsRemaining = vector<unsigned int>(maxIts + 1, 0);
 }
 
 float BECDecoder::SER(vector<float> &SERVector){
@@ -361,8 +687,24 @@ void BECDecoder::codewordsDecodedEachIt(vector<unsigned int> &numDecodedEachIt, 
 }
 
 BECDecoder::BECDecoder(Eigen::SparseMatrix<bool,ColMajor> edgeList_in, const unsigned int i){
-	edgeListColMajor = edgeList_in;
-	edgeListRowMajor = SparseMatrix<bool,RowMajor>(edgeListColMajor);
+	edgeListColMajorSp = edgeList_in;
+	edgeListRowMajorSp = SparseMatrix<bool,RowMajor>(edgeListColMajorSp);
+	maxIts = i;
+
+	// numSymbolsDecoded = 0;
+	// numFramesDecoded = 0;
+
+	// symbolErrorsRemaining = vector<unsigned int>(maxIts + 1, 0);
+	// frameErrorsRemaining = vector<unsigned int>(maxIts + 1, 0);
+
+	reset();
+}
+
+BECDecoder::BECDecoder(std::vector< std::vector<unsigned int> > edgeListRowMajor_in, std::vector<std::vector<unsigned int> > edgeListColMajor_in, const unsigned int i){
+	edgeListRowMajor = edgeListRowMajor_in;
+	edgeListColMajor = edgeListColMajor_in;
+	// edgeListColMajor = edgeList_in;
+	// edgeListRowMajor = SparseMatrix<bool,RowMajor>(edgeListColMajor);
 	maxIts = i;
 
 	// numSymbolsDecoded = 0;

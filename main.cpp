@@ -21,7 +21,9 @@ int main(int argc, char *argv[]){
 	float channel_param_min, channel_param_max, channel_param_step;
 	vector<float> channel_param_range;
 	vector<float> channel_param_list;
-	string channel_model;
+	string channel_model_str;
+	unsigned int channel_model;
+	string output_filename;
 
 	vector<string> valid_channel_models;
 	valid_channel_models.push_back("BEC");
@@ -30,6 +32,8 @@ int main(int argc, char *argv[]){
 	int seed;
 	unsigned int max_decoding_failures;
 	unsigned int max_frames;
+
+	bool param_sort_override;
 
 	// InpOptsClass opts(argc, argv, config_filename, "cf");
 	InpOptsClass opts(argc, argv, config_filename, "cf");
@@ -54,7 +58,9 @@ int main(int argc, char *argv[]){
 		opts.addOpt('e', "edge_list_file", "Path to file containing parity-check matrix edge list", value<string>(edge_list_filename).defaultValue("edge_list.txt"));
 		opts.addOpt('d', "max_decoding_failures", "Maximum number of decoding failures per channel parameter value", value<unsigned int>(max_decoding_failures).defaultValue(100).numArgs(1));
 		opts.addOpt('f', "max_frames", "Maximum number of frames to transmit per channel parameter value", value<unsigned int>(max_frames).defaultValue(1000000).numArgs(1));
-		opts.addOpt('m', "channel_model", "Channel model to be used", value<string>(channel_model).numArgs(1).setValList(valid_channel_models));
+		opts.addOpt('m', "channel_model", "Channel model to be used", value<string>(channel_model_str).numArgs(1).setValList(valid_channel_models));
+		opts.addOpt("param_sort_override", "Override channel parameter sorting", value<bool>(param_sort_override).numArgs(0).defaultValue(false));
+		opts.addOpt('o', "output", "Path to output file", value<string>(output_filename).numArgs(1));
 	}
 	/* Check if an exception was thrown when parsing the options, if so we print an error
 	 * message and quit
@@ -105,8 +111,10 @@ int main(int argc, char *argv[]){
 	if (param_modes_used == 0){
 
 	}
-	else if (param_modes_used == 1 && param_mode == CHANNEL_PARAM_MULTI_LINE_RANGE_OF_VALUES){
-
+	else if (param_modes_used == 1 && param_mode == CHANNEL_PARAM_ONE_LINE_RANGE_OF_VALUES){
+				channel_param_min = channel_param_range[0];
+				channel_param_step = channel_param_range[1];
+				channel_param_max = channel_param_range[2];
 	}
 	else if (param_modes_used > 1){
 		unsigned int tmp_ui;
@@ -151,91 +159,145 @@ int main(int argc, char *argv[]){
 		channel_params = getChannelParamList(channel_param_list);
 	}
 
-	cout << listChannelParams(channel_params) << endl;
+	// cout << "channel_model_str = |" << channel_model_str << "|" << endl;
 
-	cout << "channel_model = |" << channel_model << "|" << endl;
-
-	exit(0);
-
-	// cout << "channel_param = " << channel_param << endl;
-	// cout << "channel_param_min = " << channel_param_min << endl;
-	// cout << "channel_param_max = " << channel_param_max << endl;
-	// cout << "channel_param_step = " << channel_param_step << endl;
-
-	// cout << "\nchannel_param_range.size() = " << channel_param_range.size() << endl;
-	// cout << "channel_param_range = " << endl;
-	// for (vector<float>::iterator it = channel_param_range.begin(); it < channel_param_range.end(); ++it){
-	// 	cout << "\t" << *it;
-	// }
-	// cout << endl << endl;
-
-	// cout << "\nchannel_param_list.size() = " << channel_param_list.size() << endl;
-	// cout << "channel_param_list = " << endl;
-	// for (vector<float>::iterator it = channel_param_list.begin(); it < channel_param_list.end(); ++it){
-	// 	cout << "\t" << *it;
-	// }
-	// cout << endl << endl;	
-
-	cout << "maxIts = " << maxIts << endl;
-	cout << "seed = " << seed << endl;
-	cout << "max_decoding_failures = " << max_decoding_failures << endl;
-	cout << "max_frames = " << max_frames << endl;
-	// exit(0);
+	cout << setw(50) << "Maximum number of decoder iterations   -->   " << maxIts << endl;
+	cout << setw(50) << "Seed for pseudorandom number generator   -->   " << seed << endl;
+	cout << setw(50) << "Maximum number of decoding failures   -->   " << max_decoding_failures << '\n' << setw(50) << "per channel parameter value         " << endl;
+	cout << setw(50) << "Maximum number of frames to send   -->   " << max_frames << '\n' << setw(50) << "per channel parameter value         " << endl;
 
 	cout << "\n\nLoading the edge list from the file " << edge_list_filename << " . . . " << flush;
 
-	if (loadSparseBinMatFromTxt(C, edge_list_filename)){
-		cout << "DONE!" << endl;
-	}
+	unsigned int block_length;
+
+	// bool useSp = true;
+	// bool useSp = false;
+	// std::vector< std::vector<unsigned int> > edgeListRowMajor, edgeListColMajor;
+
+
+	if (useSp){
+		if (loadSparseBinMatFromTxt(C, edge_list_filename)){
+			cout << "DONE!" << endl;
+			block_length = C.cols();
+			cout << "\nThere are " << C.cols() << " VNs and " << C.rows() << " CNs." << endl;		
+		}
+		else {
+			cout << "FAILED! Quitting . . ." << endl;
+			return EXIT_FILE_FAILURE;
+		}
+	}		
 	else {
-		cout << "FAILED! Quitting . . ." << endl;
-		return EXIT_FILE_FAILURE;
+		if (loadSparseBinMatFromTxt(edgeListRowMajor, edgeListColMajor, edge_list_filename)){
+			cout << "DONE!" << endl;
+
+			block_length = edgeListColMajor.size();
+			cout << "\nThere are " << edgeListColMajor.size() << " VNs and " << edgeListRowMajor.size() << " CNs." << endl;			
+		}
+		else {
+			cout << "FAILED! Quitting . . ." << endl;
+			return EXIT_FILE_FAILURE;
+		}
 	}
-
-	// vector< list<unsigned int> > rowMajor, colMajor;
-
-	// loadSparseBinMatFromTxt(rowMajor, colMajor, edge_list_filename);
 
 	/* Seed the RNG */
 	std::mt19937 RNG(seed);
 
-	unsigned int block_length = C.cols();
-
-	cout << "\nThere are " << C.cols() << " VNs and " << C.rows() << " CNs." << endl;
-
-	/* Create the channel object */
-	BEChannel BEC(channel_param, RNG);
-
-	/* Generate an all-zero codeword */
-	BinTXVector codeword(block_length, 0);
-	/* Modulate the codeword using BPSK */
-	BPSKTXVector modulatedCW = BPSKMod(codeword);
-
-	/* Create the decoder object */
-	BECDecoder dec(C, maxIts);
 
 
-	vector<float> SER, FER, percDecodedEachIt;
-	vector<unsigned int> numDecodedEachIt;
-	unsigned int numErrs;
 
-	for (unsigned int i = 0; (i < max_decoding_failures) && (i < max_frames); ++i){
-		/* Transmit the modulated codeword over the channel */
-		BECBPSKRXVector ModulatedRXCW = BEC.useChannel(modulatedCW);	
-		/* Demodulate the received vector */
-		BECRXVector RXCW = BPSKDemod(ModulatedRXCW);
-		/* Decode the received vector */
-		dec.decode(RXCW, modulatedCW, numErrs);
 
-		/* Update error statistics from the decoder */
-		dec.SER(SER);
-		dec.FER(FER);
-		dec.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);
+	/* Prepare the output file */
+	std::ofstream txt_file_ofs = prepareOutputTxtFile(output_filename, maxIts);
+	std::ofstream txt_file_ofs_BER = prepareSERTxtFile("output_BER.txt", maxIts);
+	std::ofstream txt_file_ofs_FER = prepareFERTxtFile("output_FER.txt", maxIts);
 
-		printErrorRates(SER, FER, "\t");
-		printNumDecodedEachIt(numDecodedEachIt, percDecodedEachIt, "\t");	
+	if (channel_model_str.compare("BEC") == 0){
+		channel_model = CHANNEL_TYPE_BEC;
+
+		cout << "Using BEC Simulator\n" << endl;
+
+		/* We want to start with the least favorable channel parameter, as results in this
+		 * region are obtained much more quickly, so we sort the vector of channel parameters
+		 */
+		sortChannelParams(channel_params, channel_model, param_sort_override);
+		cout << listChannelParams(channel_params) << endl;
+
+		/* Generate an all-zero codeword */
+		BinTXVector codeword(block_length, 0);
+		/* Modulate the codeword using BPSK */
+		BPSKTXVector modulatedCW = BPSKMod(codeword);
+
+		/* Create the decoder object */		
+		BECDecoder dec1(C, maxIts);
+		BECDecoder dec2(edgeListRowMajor, edgeListColMajor, maxIts);
+
+		vector<float> SER, FER, percDecodedEachIt;
+		vector<unsigned int> numDecodedEachIt;
+		unsigned int numErrs;
+
+		for (vector<float>::iterator channel_param_it = channel_params.begin(); channel_param_it < channel_params.end(); ++channel_param_it){
+			float current_channel_param = *channel_param_it;
+
+			/* Create the channel object */	
+			BEChannel BEC(current_channel_param, RNG);
+
+			unsigned int frameErrors = 0;
+
+			cout << "Current channel parameter: " << *channel_param_it << endl;
+
+			for (unsigned int i = 0; i < max_frames; ++i){
+				/* Transmit the modulated codeword over the channel */
+				BECBPSKRXVector ModulatedRXCW = BEC.useChannel(modulatedCW);	
+				/* Demodulate the received vector */
+				BECRXVector RXCW = BPSKDemod(ModulatedRXCW);
+				/* Decode the received vector */
+				if (useSp){
+					dec1.decode(RXCW, modulatedCW, numErrs, true);
+				/* Update error statistics from the decoder */
+				dec1.SER(SER);
+				dec1.FER(FER);
+				dec1.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);					
+				}
+				else {
+					dec2.decode(RXCW, modulatedCW, numErrs);
+				/* Update error statistics from the decoder */
+				dec2.SER(SER);
+				dec2.FER(FER);
+				dec2.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);					
+				}
+
+				/* If there are symbol errors remaining, increment the frameErrors counter */
+				frameErrors = numErrs ? (frameErrors++) : (frameErrors);
+
+				// /* Update error statistics from the decoder */
+				// dec.SER(SER);
+				// dec.FER(FER);
+				// dec.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);
+
+				printErrorRates(SER, FER, "\t");
+				printNumDecodedEachIt(numDecodedEachIt, percDecodedEachIt, "\t");
+
+				if (frameErrors >= max_decoding_failures){
+					break;
+				}
+			}
+
+			/* At this point we have finished all of the simulations for this channel
+			 * parameter, so we save the results.
+			 */
+			saveResultsToTxt(txt_file_ofs, current_channel_param, SER, FER);
+			saveERResultsToTxt(txt_file_ofs_BER, current_channel_param, SER);
+			saveERResultsToTxt(txt_file_ofs_FER, current_channel_param, FER);
+
+			dec1.reset();
+			dec2.reset();
+		}
 	}
 
+	/* Close the files we've opened */
+	txt_file_ofs.close();
+	txt_file_ofs_BER.close();
+	txt_file_ofs_FER.close();
 
 	clock_t end = clock();
 	double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
