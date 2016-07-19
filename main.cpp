@@ -152,8 +152,13 @@ int main(int argc, char *argv[]){
 	if (param_mode == CHANNEL_PARAM_MODE_SINGLE_VALUE){
 		channel_params = getChannelParamList(channel_param);
 	}
-	else if ((param_mode == CHANNEL_PARAM_MULTI_LINE_RANGE_OF_VALUES) || (param_mode == CHANNEL_PARAM_ONE_LINE_RANGE_OF_VALUES)){
+	else if (param_mode == CHANNEL_PARAM_MULTI_LINE_RANGE_OF_VALUES){
 		channel_params = getChannelParamList(channel_param_min, channel_param_step, channel_param_max);
+	}
+	else if (param_mode == CHANNEL_PARAM_ONE_LINE_RANGE_OF_VALUES){
+		float channel_param_min_tmp = (channel_param_range[0] < channel_param_range[2]) ? channel_param_range[0] : channel_param_range[2];
+		float channel_param_max_tmp = (channel_param_range[2] > channel_param_range[0]) ? channel_param_range[2] : channel_param_range[0];
+		channel_params = getChannelParamList(channel_param_min_tmp, channel_param_range[1], channel_param_max_tmp);
 	}
 	else if (param_mode == CHANNEL_PARAM_LIST_OF_VALUES){
 		channel_params = getChannelParamList(channel_param_list);
@@ -170,13 +175,14 @@ int main(int argc, char *argv[]){
 
 	unsigned int block_length;
 
-	// bool useSp = true;
+	bool useSp = true;
 	// bool useSp = false;
-	// std::vector< std::vector<unsigned int> > edgeListRowMajor, edgeListColMajor;
+	std::vector< std::vector<unsigned int> > edgeListRowMajor, edgeListColMajor;
+	std::vector<unsigned int> VNDegrees, CNDegrees;
 
 
-	if (useSp){
-		if (loadSparseBinMatFromTxt(C, edge_list_filename)){
+	// if (useSp){
+		if (loadSparseBinMatFromTxt(C, VNDegrees, CNDegrees, edge_list_filename)){
 			cout << "DONE!" << endl;
 			block_length = C.cols();
 			cout << "\nThere are " << C.cols() << " VNs and " << C.rows() << " CNs." << endl;		
@@ -185,25 +191,24 @@ int main(int argc, char *argv[]){
 			cout << "FAILED! Quitting . . ." << endl;
 			return EXIT_FILE_FAILURE;
 		}
-	}		
-	else {
-		if (loadSparseBinMatFromTxt(edgeListRowMajor, edgeListColMajor, edge_list_filename)){
-			cout << "DONE!" << endl;
+	// }		
+	// else {
+	// 	if (loadSparseBinMatFromTxt(edgeListRowMajor, edgeListColMajor, VNDegrees, CNDegrees, edge_list_filename)){
+	// 		cout << "DONE!" << endl;
 
-			block_length = edgeListColMajor.size();
-			cout << "\nThere are " << edgeListColMajor.size() << " VNs and " << edgeListRowMajor.size() << " CNs." << endl;			
-		}
-		else {
-			cout << "FAILED! Quitting . . ." << endl;
-			return EXIT_FILE_FAILURE;
-		}
-	}
+	// 		block_length = edgeListColMajor.size();
+	// 		cout << "\nThere are " << edgeListColMajor.size() << " VNs and " << edgeListRowMajor.size() << " CNs." << endl;			
+	// 	}
+	// 	else {
+	// 		cout << "FAILED! Quitting . . ." << endl;
+	// 		return EXIT_FILE_FAILURE;
+	// 	}
+	// }
 
 	/* Seed the RNG */
 	std::mt19937 RNG(seed);
 
-
-
+	unsigned int totalFramesSent = 0;
 
 
 	/* Prepare the output file */
@@ -228,8 +233,8 @@ int main(int argc, char *argv[]){
 		BPSKTXVector modulatedCW = BPSKMod(codeword);
 
 		/* Create the decoder object */		
-		BECDecoder dec1(C, maxIts);
-		BECDecoder dec2(edgeListRowMajor, edgeListColMajor, maxIts);
+		BECDecoder dec1(C, VNDegrees, CNDegrees, maxIts);
+		// BECDecoder dec2(edgeListRowMajor, edgeListColMajor, VNDegrees, CNDegrees, maxIts);
 
 		vector<float> SER, FER, percDecodedEachIt;
 		vector<unsigned int> numDecodedEachIt;
@@ -247,27 +252,28 @@ int main(int argc, char *argv[]){
 
 			for (unsigned int i = 0; i < max_frames; ++i){
 				/* Transmit the modulated codeword over the channel */
-				BECBPSKRXVector ModulatedRXCW = BEC.useChannel(modulatedCW);	
+				BECBPSKRXVector ModulatedRXCW = BEC.useChannel(modulatedCW);
+				totalFramesSent++;
 				/* Demodulate the received vector */
 				BECRXVector RXCW = BPSKDemod(ModulatedRXCW);
 				/* Decode the received vector */
-				if (useSp){
+				// if (useSp){
 					dec1.decode(RXCW, modulatedCW, numErrs, true);
-				/* Update error statistics from the decoder */
-				dec1.SER(SER);
-				dec1.FER(FER);
-				dec1.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);					
-				}
-				else {
-					dec2.decode(RXCW, modulatedCW, numErrs);
-				/* Update error statistics from the decoder */
-				dec2.SER(SER);
-				dec2.FER(FER);
-				dec2.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);					
-				}
+					/* Update error statistics from the decoder */
+					dec1.SER(SER);
+					dec1.FER(FER);
+					dec1.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);	
+				// }
+				// else {
+					// dec2.decode(RXCW, modulatedCW, numErrs);
+					/* Update error statistics from the decoder */
+					// dec2.SER(SER);
+					// dec2.FER(FER);
+					// dec2.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);					
+				// }
 
 				/* If there are symbol errors remaining, increment the frameErrors counter */
-				frameErrors = numErrs ? (frameErrors++) : (frameErrors);
+				frameErrors = numErrs ? (++frameErrors) : (frameErrors);
 
 				// /* Update error statistics from the decoder */
 				// dec.SER(SER);
@@ -290,9 +296,11 @@ int main(int argc, char *argv[]){
 			saveERResultsToTxt(txt_file_ofs_FER, current_channel_param, FER);
 
 			dec1.reset();
-			dec2.reset();
+			// dec2.reset();
 		}
 	}
+
+	cout << "Total frames sent: " << totalFramesSent << endl;
 
 	/* Close the files we've opened */
 	txt_file_ofs.close();

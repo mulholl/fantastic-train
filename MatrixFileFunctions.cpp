@@ -3,7 +3,7 @@
 using namespace std;
 using namespace Eigen;
 
-bool loadSparseBinMatFromTxt(SparseMatrix<bool> &mat, const string str){
+bool loadSparseBinMatFromTxt(SparseMatrix<bool> &mat, vector<unsigned int> &VNDegrees, vector<unsigned int> &CNDegrees, const string str){
 	mat.resize(0, 0);
 
 	vector< Triplet<bool> > vec;
@@ -65,6 +65,19 @@ bool loadSparseBinMatFromTxt(SparseMatrix<bool> &mat, const string str){
 		// mat2.coeffRef(rowInd, colInd) = true;
 		mat.setFromTriplets(vec.begin(), vec.end());
 
+		vector<unsigned int> VNDegrees_tmp(numCols, 0);
+		vector<unsigned int> CNDegrees_tmp(numRows, 0);
+
+		for (int i = 0; i < numCols; ++i){
+			for (Eigen::SparseMatrix<bool>::InnerIterator it(mat, i); it; ++it){
+				CNDegrees_tmp[it.row()]++;
+				VNDegrees_tmp[i]++;
+			}
+		}
+
+		VNDegrees = VNDegrees_tmp;
+		CNDegrees = CNDegrees_tmp;
+
 		// cout << "Done\n\n\n" << endl;
 	}
 	else {
@@ -74,7 +87,7 @@ bool loadSparseBinMatFromTxt(SparseMatrix<bool> &mat, const string str){
 	return true;
 }
 
-bool loadSparseBinMatFromTxt(vector< vector<unsigned int> > &rowMajor, vector< vector<unsigned int> > &colMajor, const std::string str){
+bool loadSparseBinMatFromTxt(vector< vector<unsigned int> > &rowMajor, vector< vector<unsigned int> > &colMajor, vector<unsigned int> &VNDegrees, vector<unsigned int> &CNDegrees, const std::string str){
 	rowMajor.clear();
 	colMajor.clear();
 
@@ -183,6 +196,9 @@ bool loadSparseBinMatFromTxt(vector< vector<unsigned int> > &rowMajor, vector< v
 		vector< vector<unsigned int> >::iterator rowMajorIt;
 		vector< vector<unsigned int> >::iterator colMajorIt;
 
+		vector<unsigned int> VNDegrees_tmp(numCols, 0);
+		vector<unsigned int> CNDegrees_tmp(numRows, 0);		
+
 		// for (rowDegreeIt = rowDegrees.begin(); rowDegreeIt < rowDegrees.end(); ++rowDegreeIt){
 		// 	rowMajorIt = rowMajor.begin() + distance(rowDegrees.begin(), rowDegreeIt);
 		// 	(*rowMajorIt).resize(*rowDegreeIt);
@@ -217,6 +233,7 @@ bool loadSparseBinMatFromTxt(vector< vector<unsigned int> > &rowMajor, vector< v
 					throw MatInpFileNonInteger{};
 				}
 				rowMajorIt = rowMajor.begin() + rowInd;
+				CNDegrees_tmp[rowInd]++;
 				usedRowInd = true;
 			}
 			else {
@@ -225,12 +242,16 @@ bool loadSparseBinMatFromTxt(vector< vector<unsigned int> > &rowMajor, vector< v
 					throw MatInpFileNonInteger{};
 				}
 				colMajorIt = colMajor.begin() + colInd;
+				VNDegrees_tmp[colInd]++;
 				usedColInd = true;
 
 				(*rowMajorIt).push_back(colInd);
 				(*colMajorIt).push_back(rowInd);
 			}
 		}
+
+		VNDegrees = VNDegrees_tmp;
+		CNDegrees = CNDegrees_tmp;
 	}
 	else {
 		throw MatInpFileOpenFail(str);

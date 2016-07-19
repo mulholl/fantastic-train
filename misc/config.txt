@@ -1,0 +1,13 @@
+channel_param_range = 0.6 0.05 0.3
+
+max_iterations = 10
+
+edge_list_file = edge_list.txt
+
+channel_model = BEC
+
+output = output.txt
+
+max_frames = 100
+
+max_decoding_failures = 10

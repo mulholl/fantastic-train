@@ -1,6 +1,20 @@
 cmake_minimum_required (VERSION 2.6)
 project (fantastic_train)
 
+SET (CMAKE_C_COMPILER             "/usr/bin/clang")
+SET (CMAKE_C_FLAGS                "-Wall -std=c99")
+SET (CMAKE_C_FLAGS_DEBUG          "-g")
+SET (CMAKE_C_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+SET (CMAKE_C_FLAGS_RELEASE        "-O4 -DNDEBUG")
+SET (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
+
+SET (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
+SET (CMAKE_CXX_FLAGS                "-Wall")
+SET (CMAKE_CXX_FLAGS_DEBUG          "-g")
+SET (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+SET (CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
+SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+
 # The version number.
 set (FANTASTIC_TRAIN_VERSION_MAJOR 0)
 set (FANTASTIC_TRAIN_VERSION_MINOR 1)
@@ -26,8 +40,6 @@ set (FANTASTIC_TRAIN_LIBS ${FANTASTIC_TRAIN_LIBS} InpOpts)
 # so that we will find configured header files
 #include_directories("${PROJECT_BINARY_DIR}")
 include_directories("${PROJECT_BINARY_DIR}/InpOpts/")
-
-# SET( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
 # Tell cmake to find Eigen and how to do that
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})

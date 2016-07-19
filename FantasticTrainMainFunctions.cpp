@@ -57,6 +57,8 @@ std::vector<float> getChannelParamList(const float min, const float step, const 
 	std::vector<float> param_list;
 
 	if ((float)num_els * step == (max - min)){
+		// std::cout << "List type 1" << std::endl;
+		// std::cout << "Initial num_els = " << num_els << std::endl;
 		num_els++;
 		param_list.reserve(num_els);
 		param_list.push_back(min);
@@ -66,6 +68,8 @@ std::vector<float> getChannelParamList(const float min, const float step, const 
 		}
 	}
 	else {
+		// std::cout << "List type 2" << std::endl;
+		// std::cout << "Initial num_els = " << num_els << std::endl;
 		num_els++;
 		param_list.reserve(num_els);
 		param_list.push_back(min);
@@ -74,8 +78,14 @@ std::vector<float> getChannelParamList(const float min, const float step, const 
 			param_list.push_back(min + (step * i));
 		}
 
-		param_list.push_back(max);
+		// param_list.push_back(max);
 	}
+
+	// for (std::vector<float>::iterator it = param_list.begin(); it < param_list.end(); ++it){
+	// 	std::cout << "\t" << *it << std::endl;
+	// }
+
+	// exit(0);
 
 	return param_list;
 }
