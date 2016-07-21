@@ -7,8 +7,7 @@ using namespace inpopts;
 int main(int argc, char *argv[]){
 	clock_t begin = clock();
 
-	MatrixXi A;
-	SparseMatrix<double> B;
+	EdgeList EL1;
 	SparseMatrix<bool> C;
 	string edge_list_filename;
 	string config_filename = "config.txt";
@@ -182,15 +181,27 @@ int main(int argc, char *argv[]){
 
 
 	// if (useSp){
-		if (loadSparseBinMatFromTxt(C, VNDegrees, CNDegrees, edge_list_filename)){
-			cout << "DONE!" << endl;
-			block_length = C.cols();
-			cout << "\nThere are " << C.cols() << " VNs and " << C.rows() << " CNs." << endl;		
-		}
-		else {
-			cout << "FAILED! Quitting . . ." << endl;
-			return EXIT_FILE_FAILURE;
-		}
+	clock_t begin_file_read = clock();
+	if (loadSparseBinMatFromTxt(C, VNDegrees, CNDegrees, edge_list_filename)){
+		cout << "DONE!" << endl;
+		block_length = C.cols();
+		cout << "\nThere are " << C.cols() << " VNs and " << C.rows() << " CNs." << endl;		
+	}
+	else {
+		cout << "FAILED! Quitting . . ." << endl;
+		return EXIT_FILE_FAILURE;
+	}
+	clock_t end_file_read = clock();
+
+	cout << "\t\t\tIt took " << (double)(end_file_read - begin_file_read) / CLOCKS_PER_SEC << " secs to read the file using sparse matrices!" << endl << endl;
+
+
+	begin_file_read = clock();
+	EL1.load(edge_list_filename, "txt");
+	end_file_read = clock();
+
+	cout << "\t\t\tIt took " << (double)(end_file_read - begin_file_read) / CLOCKS_PER_SEC << " secs to read the file using arrays!" << endl << endl;
+
 	// }		
 	// else {
 	// 	if (loadSparseBinMatFromTxt(edgeListRowMajor, edgeListColMajor, VNDegrees, CNDegrees, edge_list_filename)){
@@ -206,7 +217,8 @@ int main(int argc, char *argv[]){
 	// }
 
 	/* Seed the RNG */
-	std::mt19937 RNG(seed);
+	// std::mt19937 RNG(seed);
+	srand(seed);
 
 	unsigned int totalFramesSent = 0;
 
@@ -244,7 +256,8 @@ int main(int argc, char *argv[]){
 			float current_channel_param = *channel_param_it;
 
 			/* Create the channel object */	
-			BEChannel BEC(current_channel_param, RNG);
+			// BEChannel BEC(current_channel_param, RNG);
+			BEChannel BEC(current_channel_param);
 
 			unsigned int frameErrors = 0;
 

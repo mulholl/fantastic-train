@@ -20,15 +20,16 @@ class BEChannel{
 		unsigned int numErrors(); // Return the number of erasures in the most recently received vector
 		ErrorIndVector ErrorInds(); // Return the indices of the erasures in the most recently received vector
 		BECRXVector useChannel(const BPSKTXVector &toTransmit); // Simulate transmission of toTransmit over the channel
-		BEChannel(const float e, std::mt19937 &RNGIn);
+		// BEChannel(const float e, std::mt19937 &RNGIn);
+		BEChannel(const float e);
 	private:
 		float epsilon; // Stores the erasure probability for the channel
 		BPSKTXVector TX; // Stores the most recently transmitted vecotr
 		BECRXVector RX; // Stores the most recently received vector
 		unsigned int RXErrors; // Stores the number of erasures in RXVector
 		ErrorIndVector ErrInds; // Stores the indices of the erased bits in RXVector
-		std::mt19937 RNG; // Mersenne Twister pseudorandum number generator
-		std::uniform_real_distribution<float> uniformRDist; // Uniform real distribution
+		// std::mt19937 RNG; // Mersenne Twister pseudorandum number generator
+		// std::uniform_real_distribution<float> uniformRDist; // Uniform real distribution
 };
 
 #endif

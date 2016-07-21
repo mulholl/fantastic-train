@@ -68,28 +68,49 @@ BECRXVector BEChannel::useChannel(const BPSKTXVector &toTransmit){
 	RXErrors = 0;
 
 	/* Clear the vector storing the indices of erased bits */
-	ErrInds.resize(0);
+	// ErrInds.resize(0);
+	ErrInds = ErrorIndVector(TX.size(), 0);
 
 	/* Now we can simulate transmission of the vector TX over the 
 	 * channel 
 	 */
 
+	unsigned int dist = 0;
+
+	BPSKTXVector::iterator it_begin = RX.begin();
+	BPSKTXVector::const_iterator it_end = toTransmit.end();
+
 	/* Generate erased bits */
-	for (BPSKTXVector::const_iterator it = toTransmit.begin(); it < toTransmit.end(); ++it){
-		if (uniformRDist(RNG) < epsilon){
-			unsigned int dist = distance(toTransmit.begin(), it);
-			*(RX.begin() + dist) = 0; // 0 used as the BPSK value for an erased bit
+	for (BPSKTXVector::const_iterator it = toTransmit.begin(); it < it_end; ++it){
+		dist++;
+		if (rand() < (RAND_MAX + 1.0) * epsilon){
+		// if (uniformRDist(RNG) < epsilon){
+			// unsigned int dist = distance(toTransmit.begin(), it);
+			*(it_begin + dist) = 0; // 0 used as the BPSK value for an erased bit
 			RXErrors++; // Increment the number of erasures
-			ErrInds.push_back(dist); // Store the index of this erasure
+			// ErrInds.push_back(dist); // Store the index of this erasure
+			ErrInds[RXErrors] = dist;
 		}
 	}
+
+	ErrInds.resize(RXErrors);
+
+	// cout << "Error rate: " << (float) RXErrors / (float) RX.size() << endl;
 
 	return RX;
 }
 
+// /* Constructor */
+// BEChannel::BEChannel(const float e, mt19937 &RNGIn) : uniformRDist(uniform_real_distribution<float>(0.0, 1.0)) {
+// 	RNG = RNGIn;
+// 	epsilon = e;
+// 	TX.resize(0);
+// 	RX.resize(0);
+// }
+
 /* Constructor */
-BEChannel::BEChannel(const float e, mt19937 &RNGIn) : uniformRDist(uniform_real_distribution<float>(0.0, 1.0)) {
-	RNG = RNGIn;
+BEChannel::BEChannel(const float e) {
+	// RNG = RNGIn;
 	epsilon = e;
 	TX.resize(0);
 	RX.resize(0);

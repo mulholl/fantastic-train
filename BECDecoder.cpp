@@ -25,13 +25,6 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 		}
 	}
 
-	// for (unsigned int i = 0; i < numVNs; ++i){
-	// 	M[i] = RX_in[i];
-	// 	if (M[i] == 0.5){
-	// 		numInitialErrors++;
-	// 	}
-	// }
-
 	numRemainingErrors = numInitialErrors;
 	numSymbolsDecoded+= numVNs;
 	numFramesDecoded++;
@@ -40,15 +33,13 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 
 	unsigned int numCorrectedErrs = 0;
 
-	// float EdgeMessages[numCNs * numVNs];
 	float *EdgeMessages = new float[numCNs * numVNs];
-
-	// for (unsigned int a = 0; a < numCNs * numVNs; ++a){
-	// 	EdgeMessages[a] = -100.00;
-	// }
 
 	unsigned int i, i_dash, j, l;
 	unsigned int i_it, j_it, i_dash_it;
+
+	bool allOtherMessagesIntoCNKnown;
+	bool mod2_sum;
 
 	symbolErrorsRemaining[0] += numInitialErrors;
 	if (numInitialErrors){
@@ -65,9 +56,6 @@ BPSKRXVector BECDecoder::decode(const BECRXVector &RX_in, const BPSKTXVector &TX
 			/* Johnson Algorithm 2.1 Lines 10-16 */
 			for (i_it = 0; i_it < CNDegrees[j]; ++i_it){
 				i = RowConnectivity[maxCNDegree * j + i_it];
-
-				bool allOtherMessagesIntoCNKnown = true;
-				bool mod2_sum = false;
 
 				/* Johnson Algorithm 2.1 lines 11-15 */
 				for (i_dash_it = 0; i_dash_it < CNDegrees[j]; ++i_dash_it){

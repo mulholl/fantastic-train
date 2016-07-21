@@ -19,6 +19,7 @@
 #include "FantasticTrainMainFunctions.hpp"
 #include "FantasticTrainExceptions.hpp"
 #include "ChannelModels.hpp"
+#include "EdgeList.hpp"
 
 #define CHANNEL_PARAM_MODE_SINGLE_VALUE 1
 #define CHANNEL_PARAM_MULTI_LINE_RANGE_OF_VALUES 2
