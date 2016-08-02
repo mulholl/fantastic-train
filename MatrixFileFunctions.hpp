@@ -18,10 +18,10 @@ bool loadSparseBinMatFromTxt(Eigen::SparseMatrix<bool> &mat, std::vector<unsigne
 bool loadSparseBinMatFromTxt(std::vector< std::vector<unsigned int> > &rowMajor, std::vector< std::vector<unsigned int> > &colMajor, std::vector<unsigned int> &VNDegrees, std::vector<unsigned int> &CNDegrees, const std::string str);
 void saveSparseBinMatToTxt(const Eigen::SparseMatrix<bool> &mat, const std::string str);
 void readMatFromTxt(Eigen::MatrixXi &mat, const std::string str);
-static unsigned int skipCommentLines(std::ifstream &ifs, const char ch);
+// static unsigned int skipCommentLines(std::ifstream &ifs, const char ch);
 static unsigned int skipBlankCommentLines(std::ifstream &ifs, const char ch);
 static std::string trimComments(const std::string str, const char ch);
-static std::istream& getNextNBNCLine(std::ifstream &ifs, std::string &str, const char ch);
+// static std::istream& getNextNBNCLine(std::ifstream &ifs, std::string &str, const char ch);
 static std::istream& getNextNBNCTLine(std::ifstream &ifs, std::string &str, const char ch);
 
 #endif

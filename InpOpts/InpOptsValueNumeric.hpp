@@ -179,7 +179,7 @@ namespace inpopts{
 				valList.resize(0);
 
 				if (defSpec){
-					if (defVal > minVal){
+					if (defVal < minVal){
 						throw inpopts::MinGreaterThanDefault { };
 					}
 				}				
@@ -197,7 +197,7 @@ namespace inpopts{
 				valList.resize(0);
 
 				if (defSpec){
-					if (defVal > minVal){
+					if (defVal < minVal){
 						throw inpopts::MinGreaterThanDefault { };
 					}
 				}
@@ -578,8 +578,8 @@ namespace inpopts{
 			bool validateAndAssign(std::vector<T> &inp){
 				bool valid = false;
 
-				bool inpBool;
-				std::vector<bool> inpBoolVec;
+				// bool inpBool;
+				// std::vector<bool> inpBoolVec;
 
 				int nArgsIn = inp.size();
 
@@ -673,7 +673,7 @@ namespace inpopts{
 			}
 
 			/* Constructor for the value class where a vector of inputs is expected */
-			value(typename std::vector<T> &inpVecVarRef) : vecVarRef(inpVecVarRef), varRef(emptyT) {
+			value(typename std::vector<T> &inpVecVarRef) : varRef(emptyT), vecVarRef(inpVecVarRef) {
 				vecInUse = true;
 
 				rangeSpec = false;
@@ -786,7 +786,7 @@ namespace inpopts{
 			}
 
 			bool validateMin(T &inp){
-				if (inp > minVal){
+				if (inp < minVal){
 					return false;
 				}
 				else {
@@ -796,7 +796,7 @@ namespace inpopts{
 
 			bool validateMin(std::vector<T> &inp){
 				for (typename std::vector<T>::iterator it = inp.begin(); it < inp.end(); ++it){
-					if (*it > minVal){
+					if (*it < minVal){
 						return false;
 					}
 				}

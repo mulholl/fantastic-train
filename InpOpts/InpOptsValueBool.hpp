@@ -228,7 +228,7 @@ namespace inpopts{
 			}
 
 			/* Constructor for the value class where a vector of inputs is expected */
-			value(typename std::vector<bool> &inpVecVarRef) : vecVarRef(inpVecVarRef), varRef(emptyT) {
+			value(typename std::vector<bool> &inpVecVarRef) : varRef(emptyT), vecVarRef(inpVecVarRef) {
 				vecInUse = true;
 
 				defSpec = false;

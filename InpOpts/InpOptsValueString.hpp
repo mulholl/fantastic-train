@@ -681,7 +681,7 @@ namespace inpopts{
 			}
 
 			/* Constructor for the value class where a vector of inputs is expected */
-			value(typename std::vector<std::string> &inpVecVarRef) : vecVarRef(inpVecVarRef), varRef(emptyT) {
+			value(typename std::vector<std::string> &inpVecVarRef) : varRef(emptyT), vecVarRef(inpVecVarRef) {
 				vecInUse = true;
 
 				rangeSpec = false;

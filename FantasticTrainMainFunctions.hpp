@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <fstream>
 
-#include "main.hpp"
+#include "FantasticTrain.hpp"
 
 template <typename T>
 std::string printVector(const std::vector<T> &v, const std::string str){

@@ -56,20 +56,21 @@ BECRXVector BEChannel::useChannel(const BPSKTXVector &toTransmit){
 	 */
 
 	/* Set the transmitted vector TX to be toTrasmit */
-	TX = toTransmit;
+	// TX = toTransmit;
 
 	/* Set the received vector RX to be the same as the new transmitted
 	 * vector TX - this will be modified later by randomly erasing some
 	 * of the bit values
 	 */
-	RX = TX;
+	// RX = TX;
+	 RX.reserve(toTransmit.size());
 
 	/* Set the number of errors in the RXeived vector to 0 */
 	RXErrors = 0;
 
 	/* Clear the vector storing the indices of erased bits */
 	// ErrInds.resize(0);
-	ErrInds = ErrorIndVector(TX.size(), 0);
+	ErrInds = ErrorIndVector(toTransmit.size(), 0);
 
 	/* Now we can simulate transmission of the vector TX over the 
 	 * channel 
@@ -77,19 +78,23 @@ BECRXVector BEChannel::useChannel(const BPSKTXVector &toTransmit){
 
 	unsigned int dist = 0;
 
-	BPSKTXVector::iterator it_begin = RX.begin();
-	BPSKTXVector::const_iterator it_end = toTransmit.end();
+	// BPSKTXVector::iterator RX_it_begin = RX.begin();
+	BPSKTXVector::const_iterator TX_it_end = toTransmit.end();
 
 	/* Generate erased bits */
-	for (BPSKTXVector::const_iterator it = toTransmit.begin(); it < it_end; ++it){
+	for (BPSKTXVector::const_iterator it = toTransmit.begin(); it < TX_it_end; ++it){
 		dist++;
 		if (rand() < (RAND_MAX + 1.0) * epsilon){
 		// if (uniformRDist(RNG) < epsilon){
 			// unsigned int dist = distance(toTransmit.begin(), it);
-			*(it_begin + dist) = 0; // 0 used as the BPSK value for an erased bit
+			// *(RX_it_begin + dist) = 0; // 0 used as the BPSK value for an erased bit
+			RX.push_back(0);
 			RXErrors++; // Increment the number of erasures
 			// ErrInds.push_back(dist); // Store the index of this erasure
 			ErrInds[RXErrors] = dist;
+		}
+		else {
+			RX.push_back(toTransmit[dist]);
 		}
 	}
 

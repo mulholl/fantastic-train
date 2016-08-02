@@ -1,8 +1,11 @@
+#ifndef FANTASTIC_TRAIN_HPP
+#define FANTASTIC_TRAIN_HPP
+
 #include "fantastic-train-config.hpp"
 
-#include <Eigen/Dense>
-#include <Eigen/SparseCore>
-#include <Eigen/SparseExtra>
+// #include <Eigen/Dense>
+// #include <Eigen/SparseCore>
+// #include <Eigen/SparseExtra>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -10,7 +13,7 @@
 #include <ctime>
 #include <list>
 
-#include "MatrixFileFunctions.hpp"
+// #include "MatrixFileFunctions.hpp"
 #include "Modulators.hpp"
 #include "BEChannel.hpp"
 #include "BECDecoder.hpp"
@@ -31,3 +34,5 @@
 
 #define EXIT_BAD_INPUTS -1
 #define EXIT_FILE_FAILURE -2
+
+#endif

@@ -2,21 +2,37 @@
 
 /* Return the total number of edges */
 int EdgeList::edges(){
+	return static_cast<const EdgeList*>(this)->edges();
+}
+
+int EdgeList::edges() const {
 	return numEdges;
 }
 
 /* Return the total number of VNs */
 int EdgeList::VNs(){
+	return static_cast<const EdgeList*>(this)->VNs();
+}
+
+int EdgeList::VNs() const {
 	return numVNs;
 }
 
 /* Return the total number of CNs */
 int EdgeList::CNs(){
+	return static_cast<const EdgeList*>(this)->CNs();
+}
+
+int EdgeList::CNs() const {
 	return numCNs;
 }
 
 /* Return the number of VNs of a given degree */
 int EdgeList::VNs(const int &deg){
+	return static_cast<const EdgeList*>(this)->VNs(deg);
+}
+
+int EdgeList::VNs(const int &deg) const {
 	if ((deg <= maxVNDeg) && (deg >= minVNDeg)){
 		return numVNsEachDegree[deg];
 	}
@@ -27,6 +43,10 @@ int EdgeList::VNs(const int &deg){
 
 /* Return the number of CNs of a given degree */
 int EdgeList::CNs(const int &deg){
+	return static_cast<const EdgeList*>(this)->CNs(deg);
+}
+
+int EdgeList::CNs(const int &deg) const {
 	if ((deg <= maxCNDeg) && (deg >= minCNDeg))
 		return numCNsEachDegree[deg];
 	else
@@ -35,6 +55,10 @@ int EdgeList::CNs(const int &deg){
 
 /* Return the fraction of VNs of a given degree */
 float EdgeList::fracVNs(const int &deg){
+	return static_cast<const EdgeList*>(this)->fracVNs(deg);
+}
+
+float EdgeList::fracVNs(const int &deg) const {
 	if ((deg <= maxVNDeg) && (deg >= minVNDeg))
 		return (float)numVNsEachDegree[deg] / (float) numVNs;
 	else
@@ -43,6 +67,10 @@ float EdgeList::fracVNs(const int &deg){
 
 /* Return the fraction of CNs of a given degree */
 float EdgeList::fracCNs(const int &deg){
+	return static_cast<const EdgeList*>(this)->fracCNs(deg);
+}
+
+float EdgeList::fracCNs(const int &deg) const {
 	if ((deg <= maxCNDeg) && (deg >= minCNDeg))
 		return (float)numCNsEachDegree[deg] / (float) numCNs;
 	else
@@ -51,36 +79,64 @@ float EdgeList::fracCNs(const int &deg){
 
 /* Return the maximum VN degree */
 int EdgeList::maxVNDegree(){
+	return static_cast<const EdgeList*>(this)->maxVNDegree();
+}
+
+int EdgeList::maxVNDegree() const {
 	return maxVNDeg;
 }
 
 /* Return the minimum VN degree */
 int EdgeList::minVNDegree(){
+	return static_cast<const EdgeList*>(this)->minVNDegree();
+}
+
+int EdgeList::minVNDegree() const {
 	return minVNDeg;
 }
 
 /* Return the maximum CN degree */
 int EdgeList::maxCNDegree(){
+	return static_cast<const EdgeList*>(this)->maxCNDegree();
+}
+
+int EdgeList::maxCNDegree() const {
 	return maxCNDeg;
 }
 
 /* Return the minimum CN degree */
 int EdgeList::minCNDegree(){
+	return static_cast<const EdgeList*>(this)->minCNDegree();
+}
+
+int EdgeList::minCNDegree() const {
 	return minCNDeg;
 }
 
 /* Return the degree of a given VN */
 int EdgeList::VNDegree(const int &VN){
+	return static_cast<const EdgeList*>(this)->VNDegree(VN);
+}
+
+int EdgeList::VNDegree(const int &VN) const {
 	return VNDegrees[VN];
 }
 
 /* Return the degree of a given CN */
 int EdgeList::CNDegree(const int &CN){
+	return static_cast<const EdgeList*>(this)->CNDegree(CN);
+}
+
+int EdgeList::CNDegree(const int &CN) const {
 	return CNDegrees[CN];
 }
 
 /* Give the first and last indices of VNConnections that pertain to a given VN */
 void EdgeList::VNConnInds(const int &VN, int &start_ind, int &end_ind){
+	static_cast<const EdgeList*>(this)->VNConnInds(VN, start_ind, end_ind);
+}
+
+void EdgeList::VNConnInds(const int &VN, int &start_ind, int &end_ind) const {
 	int tmp = 2 * VN;
 	start_ind = VNConnectionInds[tmp];
 	end_ind = VNConnectionInds[tmp + 1];
@@ -88,6 +144,10 @@ void EdgeList::VNConnInds(const int &VN, int &start_ind, int &end_ind){
 
 /* Give the first and last indices of CNConnections that pertain to a given CN */
 void EdgeList::CNConnInds(const int &CN, int &start_ind, int &end_ind){
+	static_cast<const EdgeList*>(this)->CNConnInds(CN, start_ind, end_ind);
+}
+
+void EdgeList::CNConnInds(const int &CN, int &start_ind, int &end_ind) const {
 	int tmp = 2 * CN;
 	start_ind = CNConnectionInds[tmp];
 	end_ind = CNConnectionInds[tmp + 1];
@@ -95,6 +155,10 @@ void EdgeList::CNConnInds(const int &CN, int &start_ind, int &end_ind){
 
 /* Return a string listing for each VN all of the CNs to which it is connected */
 std::string EdgeList::listAllVNConnections(){
+	return static_cast<const EdgeList*>(this)->listAllVNConnections();
+}
+
+std::string EdgeList::listAllVNConnections() const {
 	std::string ret = "";
 	std::ostringstream oss;
 	std::string tmp_str;
@@ -133,6 +197,10 @@ std::string EdgeList::listAllVNConnections(){
 
 /* Return a string listing for each CN all of the VNs to which it is connected */
 std::string EdgeList::listAllCNConnections(){
+	return static_cast<const EdgeList*>(this)->listAllCNConnections();
+}
+
+std::string EdgeList::listAllCNConnections() const {
 	std::string ret = "";
 	std::ostringstream oss;
 	std::string tmp_str;
@@ -169,6 +237,10 @@ std::string EdgeList::listAllCNConnections(){
 }
 
 std::string EdgeList::listVNDegreeAmts(){
+	return static_cast<const EdgeList*>(this)->listVNDegreeAmts();
+}
+
+std::string EdgeList::listVNDegreeAmts() const {
 	std::string ret = "";
 
 	int degree;
@@ -194,6 +266,10 @@ std::string EdgeList::listVNDegreeAmts(){
 }
 
 std::string EdgeList::listCNDegreeAmts(){
+	return static_cast<const EdgeList*>(this)->listCNDegreeAmts();
+}
+
+std::string EdgeList::listCNDegreeAmts() const {
 	std::string ret = "";
 
 	int degree;
@@ -204,7 +280,7 @@ std::string EdgeList::listCNDegreeAmts(){
 	ret = ret + "Degree\tNumber\tFraction\n";
 	ret = ret + "========================\n";
 
-	for (int degree = minCNDeg; degree <= maxCNDeg; ++degree){
+	for (degree = minCNDeg; degree <= maxCNDeg; ++degree){
 		amt = CNs(degree);
 
 		if (amt == 0)
@@ -217,8 +293,6 @@ std::string EdgeList::listCNDegreeAmts(){
 
 	return ret;
 }
-
-
 
 /* Load an edge list from an input file */
 bool EdgeList::load(const std::string &file_name, const std::string &file_type){
@@ -235,20 +309,24 @@ bool EdgeList::load(const std::string &file_name, const std::string &file_type){
 	}
 }
 
-// /* Save an edge list to an output file */
-// bool EdgeList::save(const std::string &file_name, const std::string &file_type){
-// 	if (strToUpper(file_type).compare("TXT") == 0){
-// 		saveTxt(file_name);
-// 		return true;
-// 	}
-// 	else if (strToUpper(file_type).compare("BIN") == 0){
-// 		saveBin(file_name);
-// 		return true;
-// 	}
-// 	else {
-// 		return false;
-// 	}
-// }
+/* Save an edge list to an output file */
+bool EdgeList::save(const std::string &file_name, const std::string &file_type){
+	return static_cast<const EdgeList*>(this)->save(file_name, file_type);
+}
+
+bool EdgeList::save(const std::string &file_name, const std::string &file_type) const {
+	if (strToUpper(file_type).compare("TXT") == 0){
+		saveTxt(file_name);
+		return true;
+	}
+	else if (strToUpper(file_type).compare("BIN") == 0){
+		saveBin(file_name);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
 
 /* Constructor which loads an edge list from an input file */
 EdgeList::EdgeList(const std::string &file_name, const std::string &file_type){
@@ -637,6 +715,10 @@ void EdgeList::loadBin(const std::string &file_name){
 
 /* Save an edge list to a .txt file */
 void EdgeList::saveTxt(const std::string &file_name){
+	static_cast<const EdgeList*>(this)->saveTxt(file_name);
+}
+
+void EdgeList::saveTxt(const std::string &file_name) const {
 	std::ofstream ofs(file_name, std::ios::out); // Output file stream
 
 	/* If there was a problem opening the file, throw an exception */
@@ -670,6 +752,10 @@ void EdgeList::saveTxt(const std::string &file_name){
 
 /* Save an edge list to a binary file - NB this is probably only sensible when there is a very large edge list */
 void EdgeList::saveBin(const std::string &file_name){
+	static_cast<const EdgeList*>(this)->saveBin(file_name);
+}
+
+void EdgeList::saveBin(const std::string &file_name) const {
 	std::ofstream ofs(file_name, std::ios::binary | std::ios::out); // Output file stream
 
 	/* If there was a problem opening the file, throw an exception */
@@ -690,9 +776,9 @@ void EdgeList::saveBin(const std::string &file_name){
 	ofs.write(reinterpret_cast<char*>(&fileVersion), int_size);
 
 	/* Next, we write the total number of CNs, VNs and edges to the file */
-	ofs.write(reinterpret_cast<char*>(&numCNs), int_size);
-	ofs.write(reinterpret_cast<char*>(&numVNs), int_size);
-	ofs.write(reinterpret_cast<char*>(&numEdges), int_size);
+	ofs.write(reinterpret_cast<char*>(&(const_cast<int &>(numCNs))), int_size);
+	ofs.write(reinterpret_cast<char*>(&(const_cast<int &>(numVNs))), int_size);
+	ofs.write(reinterpret_cast<char*>(&(const_cast<int &>(numEdges))), int_size);
 
 	/* Next, we write the degrees of the CNs and VNs to the file */
 	for (CN = 0; CN < numCNs; ++CN){

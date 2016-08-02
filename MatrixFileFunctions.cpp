@@ -19,7 +19,7 @@ bool loadSparseBinMatFromTxt(SparseMatrix<bool> &mat, vector<unsigned int> &VNDe
 	bool usedRowInd = false;
 	bool usedColInd = false;
 
-	unsigned int count = 0;
+	// unsigned int count = 0;
 
 	if (ifs.is_open()){
 		// cout << "FILE IS OPEN!" << endl;
@@ -102,7 +102,7 @@ bool loadSparseBinMatFromTxt(vector< vector<unsigned int> > &rowMajor, vector< v
 	bool usedRowInd = false;
 	bool usedColInd = false;
 
-	unsigned int count = 0;
+	// unsigned int count = 0;
 
 	if (ifs.is_open()){
 		
@@ -364,32 +364,32 @@ void readMatFromTxt(MatrixXi &mat, const string str){
 	}
 }
 
-unsigned int skipCommentLines(ifstream &ifs1, const char ch){
-	streampos ifs2;
+// unsigned int skipCommentLines(ifstream &ifs1, const char ch){
+// 	streampos ifs2;
 
-	string str;
-	size_t ind;
+// 	string str;
+// 	size_t ind;
 
-	unsigned int ret = 0;
+// 	unsigned int ret = 0;
 
-	while (true){
-		ifs2 = ifs1.tellg();
-		if (!getline(ifs1, str)){
-			break;
-		}
-		ind = str.find(ch);
+// 	while (true){
+// 		ifs2 = ifs1.tellg();
+// 		if (!getline(ifs1, str)){
+// 			break;
+// 		}
+// 		ind = str.find(ch);
 
-		if (ind == 0){
-			ret++;			
-		}
-		else {
-			ifs1.seekg(ifs2);
-			break;
-		}
-	}
+// 		if (ind == 0){
+// 			ret++;			
+// 		}
+// 		else {
+// 			ifs1.seekg(ifs2);
+// 			break;
+// 		}
+// 	}
 
-	return ret;
-}
+// 	return ret;
+// }
 
 unsigned int skipBlankCommentLines(ifstream &ifs1, const char ch){
 	streampos ifs2;
@@ -432,10 +432,10 @@ string trimComments(const string str, const char ch){
 /* Get the next non-blank (NB), non-comment (NC) line - Like getline() but skips lines 
  * that start with the comment character or that consist entirely of whitespace 
  */
-istream& getNextNBNCLine(ifstream &ifs, string &str, const char ch){
-	skipBlankCommentLines(ifs, ch);
-	return getline(ifs, str);
-}
+// istream& getNextNBNCLine(ifstream &ifs, string &str, const char ch){
+// 	skipBlankCommentLines(ifs, ch);
+// 	return getline(ifs, str);
+// }
 
 /* Get the next non-blank (NB), non-comment (NC), trimmed (T) line - Like getNextNBNCLine() but 
  * trims any comments AND whitespace from the end of the resulting string

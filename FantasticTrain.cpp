@@ -1,18 +1,15 @@
-#include "main.hpp"
+#include "FantasticTrain.hpp"
 
 using namespace std;
-using namespace Eigen;
+// using namespace Eigen;
 using namespace inpopts;
 
 int main(int argc, char *argv[]){
 	clock_t begin = clock();
 
 	EdgeList EL1;
-	SparseMatrix<bool> C;
 	string edge_list_filename;
 	string config_filename = "config.txt";
-	Triplet<double> T = Triplet<double>(1, 2, 0.5);
-	vector< Triplet<double> > V;
 
 	unsigned int maxIts;
 
@@ -39,8 +36,6 @@ int main(int argc, char *argv[]){
 
 	opts.addOpt('h', "help", "Print this help message");
 
-	unsigned int count = 0;
-
 	// cout << "\n\naddOpt() for channel_param" << endl;
 	try {
 		opts.addOpt('p', "channel_param", "Channel parameter value to be used", value<float>(channel_param).numArgs(1).setRange(0.0,1.0));
@@ -49,9 +44,7 @@ int main(int argc, char *argv[]){
 		opts.addOpt("channel_param_step", "Step size for a range of channel parameters", value<float>(channel_param_step).numArgs(1).setRange(0.0,1.0));
 		opts.addOpt("channel_param_range", "Range of channel parameters (usage: --channel_param_range <MINIMUM> <STEP SIZE> <MAXIMUM>", value<float>(channel_param_range).numArgs(3).setRange(0.0,1.0));
 		opts.addOpt("channel_param_list", "List of channel parameters", value<float>(channel_param_list).minNumArgs(1).setRange(0.0,1.0));
-		// cout << "\n\naddOpt() for maxIts" << endl;
 		opts.addOpt('i', "max_iterations", "Maximum number of decoder iterations to be simulated per transmission", value<unsigned int>(maxIts).minNumArgs(0).defaultValue(200));
-		// cout << "\n\naddOpt() for seed" << endl;
 		opts.addOpt('s', "seed", "Seed for pseudorandom number generator", value<int>(seed).defaultValue(time(NULL)));
 		opts.addOpt('c', "config_file", "Path to configuration file (not currently working due to limitations in sturdy-robot...)", value<string>(config_filename).defaultValue("config.txt"));
 		opts.addOpt('e', "edge_list_file", "Path to file containing parity-check matrix edge list", value<string>(edge_list_filename).defaultValue("edge_list.txt"));
@@ -73,7 +66,7 @@ int main(int argc, char *argv[]){
 	if (opts.Used("help") || opts.Used('h')){
 		cout << "fantastic-train Version " << FANTASTIC_TRAIN_VERSION_MAJOR << "." << FANTASTIC_TRAIN_VERSION_MINOR << endl << endl;
 		cout << "Options " << endl;
-		cout << opts.listArgs() << endl;
+		cout << opts.listOpts() << endl;
 		cout << "Makes use of sturdy-robot Version " << inpopts::Version() << endl;
 	}
 
@@ -163,8 +156,6 @@ int main(int argc, char *argv[]){
 		channel_params = getChannelParamList(channel_param_list);
 	}
 
-	// cout << "channel_model_str = |" << channel_model_str << "|" << endl;
-
 	cout << setw(50) << "Maximum number of decoder iterations   -->   " << maxIts << endl;
 	cout << setw(50) << "Seed for pseudorandom number generator   -->   " << seed << endl;
 	cout << setw(50) << "Maximum number of decoding failures   -->   " << max_decoding_failures << '\n' << setw(50) << "per channel parameter value         " << endl;
@@ -174,47 +165,14 @@ int main(int argc, char *argv[]){
 
 	unsigned int block_length;
 
-	bool useSp = true;
-	// bool useSp = false;
-	std::vector< std::vector<unsigned int> > edgeListRowMajor, edgeListColMajor;
-	std::vector<unsigned int> VNDegrees, CNDegrees;
 
-
-	// if (useSp){
 	clock_t begin_file_read = clock();
-	if (loadSparseBinMatFromTxt(C, VNDegrees, CNDegrees, edge_list_filename)){
-		cout << "DONE!" << endl;
-		block_length = C.cols();
-		cout << "\nThere are " << C.cols() << " VNs and " << C.rows() << " CNs." << endl;		
-	}
-	else {
-		cout << "FAILED! Quitting . . ." << endl;
-		return EXIT_FILE_FAILURE;
-	}
-	clock_t end_file_read = clock();
-
-	cout << "\t\t\tIt took " << (double)(end_file_read - begin_file_read) / CLOCKS_PER_SEC << " secs to read the file using sparse matrices!" << endl << endl;
-
-
-	begin_file_read = clock();
 	EL1.load(edge_list_filename, "txt");
-	end_file_read = clock();
+	clock_t end_file_read = clock();
 
 	cout << "\t\t\tIt took " << (double)(end_file_read - begin_file_read) / CLOCKS_PER_SEC << " secs to read the file using arrays!" << endl << endl;
 
-	// }		
-	// else {
-	// 	if (loadSparseBinMatFromTxt(edgeListRowMajor, edgeListColMajor, VNDegrees, CNDegrees, edge_list_filename)){
-	// 		cout << "DONE!" << endl;
-
-	// 		block_length = edgeListColMajor.size();
-	// 		cout << "\nThere are " << edgeListColMajor.size() << " VNs and " << edgeListRowMajor.size() << " CNs." << endl;			
-	// 	}
-	// 	else {
-	// 		cout << "FAILED! Quitting . . ." << endl;
-	// 		return EXIT_FILE_FAILURE;
-	// 	}
-	// }
+	block_length = EL1.VNs();
 
 	/* Seed the RNG */
 	// std::mt19937 RNG(seed);
@@ -227,6 +185,9 @@ int main(int argc, char *argv[]){
 	std::ofstream txt_file_ofs = prepareOutputTxtFile(output_filename, maxIts);
 	std::ofstream txt_file_ofs_BER = prepareSERTxtFile("output_BER.txt", maxIts);
 	std::ofstream txt_file_ofs_FER = prepareFERTxtFile("output_FER.txt", maxIts);
+
+	clock_t decode_begin, decode_end;
+	double avg_decode_time;
 
 	if (channel_model_str.compare("BEC") == 0){
 		channel_model = CHANNEL_TYPE_BEC;
@@ -245,12 +206,13 @@ int main(int argc, char *argv[]){
 		BPSKTXVector modulatedCW = BPSKMod(codeword);
 
 		/* Create the decoder object */		
-		BECDecoder dec1(C, VNDegrees, CNDegrees, maxIts);
-		// BECDecoder dec2(edgeListRowMajor, edgeListColMajor, VNDegrees, CNDegrees, maxIts);
+		BECDecoder dec1(&EL1, maxIts);
 
 		vector<float> SER, FER, percDecodedEachIt;
 		vector<unsigned int> numDecodedEachIt;
 		unsigned int numErrs;
+
+		decode_begin = clock();
 
 		for (vector<float>::iterator channel_param_it = channel_params.begin(); channel_param_it < channel_params.end(); ++channel_param_it){
 			float current_channel_param = *channel_param_it;
@@ -269,32 +231,30 @@ int main(int argc, char *argv[]){
 				totalFramesSent++;
 				/* Demodulate the received vector */
 				BECRXVector RXCW = BPSKDemod(ModulatedRXCW);
+
+				// frameErrors++;
+
 				/* Decode the received vector */
-				// if (useSp){
-					dec1.decode(RXCW, modulatedCW, numErrs, true);
-					/* Update error statistics from the decoder */
-					dec1.SER(SER);
-					dec1.FER(FER);
-					dec1.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);	
-				// }
-				// else {
-					// dec2.decode(RXCW, modulatedCW, numErrs);
-					/* Update error statistics from the decoder */
-					// dec2.SER(SER);
-					// dec2.FER(FER);
-					// dec2.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);					
-				// }
+				// dec1.decode(RXCW, modulatedCW, numErrs);
+				/* Update error statistics from the decoder */
+				dec1.SER(SER);
+				dec1.FER(FER);
+				dec1.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);	
 
 				/* If there are symbol errors remaining, increment the frameErrors counter */
-				frameErrors = numErrs ? (++frameErrors) : (frameErrors);
+				// frameErrors = numErrs ? (++frameErrors) : (frameErrors);
 
 				// /* Update error statistics from the decoder */
 				// dec.SER(SER);
 				// dec.FER(FER);
 				// dec.codewordsDecodedEachIt(numDecodedEachIt, percDecodedEachIt);
 
-				printErrorRates(SER, FER, "\t");
-				printNumDecodedEachIt(numDecodedEachIt, percDecodedEachIt, "\t");
+				// printErrorRates(SER, FER, "\t");
+				// printNumDecodedEachIt(numDecodedEachIt, percDecodedEachIt, "\t");
+
+				// decode_end = clock();
+				// avg_decode_time = ((double)(decode_end - decode_begin) / CLOCKS_PER_SEC) / (float)(totalFramesSent);
+				// std::cout << "Average decoder time per codeword: " << avg_decode_time << " seconds." << std::endl;
 
 				if (frameErrors >= max_decoding_failures){
 					break;
@@ -309,7 +269,6 @@ int main(int argc, char *argv[]){
 			saveERResultsToTxt(txt_file_ofs_FER, current_channel_param, FER);
 
 			dec1.reset();
-			// dec2.reset();
 		}
 	}
 

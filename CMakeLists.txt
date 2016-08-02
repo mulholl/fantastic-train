@@ -50,7 +50,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${EIGEN3_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR}/unsupported/)
 
 # Add the executables
-add_executable (fantastic_train main.cpp MatrixFileFunctions.cpp StringFunctions.cpp Modulators.cpp BEChannel.cpp BECDecoder.cpp FantasticTrainMainFunctions.cpp EdgeList.cpp)
+add_executable (fantastic_train FantasticTrain.cpp StringFunctions.cpp Modulators.cpp BEChannel.cpp BECDecoder.cpp FantasticTrainMainFunctions.cpp EdgeList.cpp)
 target_link_libraries (fantastic_train ${FANTASTIC_TRAIN_LIBS})
 
 add_definitions(-std=c++11)

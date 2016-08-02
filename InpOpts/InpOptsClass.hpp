@@ -39,7 +39,7 @@ namespace inpopts{
 			unsigned int numRecognizedCmdOpts; // The number of reognized options so far from the command line
 			unsigned int numRecognizedFileOpts; // The number of reognized options so far from the input file
 			std::string optionsFile; 
-			bool getOptionsFile;
+			// bool getOptionsFile;
 			bool isCmdOption(const std::string, bool &);
 			bool isCmdOption(const std::string);
 			void gatherCmdOpts();
@@ -155,7 +155,7 @@ namespace inpopts{
 			}
 
 			bool checkOpt(const char, const std::string, std::vector<std::string> &, const bool);
-			std::string listArgs();
+			std::string listOpts();
 			bool Used(const char);
 			bool Used(const std::string);
 			std::string Priority();

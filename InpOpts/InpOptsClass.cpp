@@ -62,7 +62,7 @@ namespace inpopts{
 		vector<string> cmdVal;
 		vector<string> fileVal;
 
-		bool ret;
+		bool ret = false;
 
 		// cout << "mode = " << mode <<endl;
 		if (updateCounters){
@@ -161,7 +161,7 @@ namespace inpopts{
 		vector<bool>::iterator it2 = recognizedCmdOpts.begin();
 		vector<bool>::iterator it3 = cmdIsLong.begin();
 
-		unsigned int l = 0;
+		// unsigned int l = 0;
 
 		// for (vector<string>::iterator it1 = cmdOpts.begin(); it1 < cmdOpts.end(); ++it1){
 			// cout << distance(cmdOpts.begin(), it1) << ": " << *it1 << endl;
@@ -201,14 +201,14 @@ namespace inpopts{
 		return count;
 	}
 
-	string InpOptsClass::listArgs(){
+	string InpOptsClass::listOpts(){
 		string str = "";
 		string opt_long = "";
 
 		string argInfo;
 		string valInfo;
 
-		const int alignToS = 20;
+		// const int alignToS = 20;
 		int alignToL = 0;;
 
 		for (vector< tuple<char, string, string, int, bool, int, bool> >::iterator it = validArgList.begin(); it != validArgList.end(); ++it){
@@ -461,7 +461,7 @@ namespace inpopts{
 				// cout << "current = " << current << endl;
 				if (!temp_bool){
 					for (string::iterator it2 = current.begin(); it2 < current.end(); ++it2){
-						char current_char = *it2;
+						// char current_char = *it2;
 						string current_string = current.substr(distance(current.begin(), it2), 1);
 						cmdIsLong.push_back(temp_bool);
 						cmdOpts.push_back(current_string);
